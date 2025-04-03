@@ -21,6 +21,12 @@ variable "proxmox_pve_node_ip" {
   default     = "192.168.178.15"
 }
 
+variable "proxmox_pve_node_domain" {
+  description = "DNS of the ProxmoxVE node"
+  type        = string
+  default     = "proxmox.thedodo.xyz"
+}
+
 variable "proxmox_pve_node_port" {
   description = "Port of the ProxmoxVE node"
   type        = string

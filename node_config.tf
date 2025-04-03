@@ -27,7 +27,7 @@ module "proxmox_users" {
   proxmox_pve_node_name = var.proxmox_pve_node_name
   users = [
     {
-      username    = var.automation_user
+      username    = "operations-automation"
       role_id     = "Operations"
       pam_enabled = false
     },
