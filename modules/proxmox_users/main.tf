@@ -42,7 +42,6 @@ resource "random_password" "password" {
 
 resource "proxmox_virtual_environment_role" "operations" {
   role_id = "Operations"
-
   privileges = [
     "Datastore.Allocate",
     "Datastore.AllocateSpace",

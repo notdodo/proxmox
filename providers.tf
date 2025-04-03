@@ -21,7 +21,7 @@ terraform {
 provider "proxmox" {
   endpoint = "https://${var.proxmox_pve_node_ip}:${var.proxmox_pve_node_port}/"
   insecure = true
-  username = "${var.automation_user}@pve"
+  username = strcontains(var.automation_user, "@p") ? var.automation_user : "${var.automation_user}@pve"
   password = var.automation_password
 
   ssh {

@@ -57,10 +57,8 @@ resource "proxmox_virtual_environment_vm" "flatcar_template" {
   tags        = ["docker", "flatcar", "template", ]
   description = "Template VM for Flatcar ${local.flatcar_version}, each cloned VM is configured with separate Ign files."
 
-  template      = true
-  started       = false
-  kvm_arguments = "-fw_cfg name=opt/org.flatcar-linux/config,file=/var/lib/vz/snippets/${proxmox_virtual_environment_file.ignition_file[0].file_name}"
-
+  template = true
+  started  = false
 
   boot_order = ["scsi0", "ide2", "net0"]
 
@@ -76,36 +74,12 @@ resource "proxmox_virtual_environment_vm" "flatcar_template" {
     dedicated = 1024 * 2
   }
 
-  # TODO: can't use this due to "shrinking" https://github.com/bpg/terraform-provider-proxmox/issues/1351
-  # switched to remote-exec
-  # disk {
-  #   datastore_id = "local-lvm"
-  #   file_format  = "raw"
-  #   file_id      = proxmox_virtual_environment_download_file.flatcar_img_latest.id
-  #   interface    = "scsi0"
-  # }
-
-  initialization {
+  disk {
     datastore_id = "local-lvm"
-    interface    = "ide2"
-  }
-
-  network_device {
-    bridge = "vmbr0"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "root"
-    private_key = var.root_private_key
-    host        = var.proxmox_pve_node_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "qm disk import ${self.vm_id} /var/lib/vz/template/iso/${proxmox_virtual_environment_download_file.flatcar_img_latest.file_name} local-lvm",
-      "qm set ${self.vm_id} -scsihw virtio-scsi-pci --scsi0 local-lvm:vm-${self.vm_id}-disk-0",
-    ]
+    file_format  = "raw"
+    file_id      = proxmox_virtual_environment_download_file.flatcar_img_latest.id
+    interface    = "scsi0"
+    size         = 9
   }
 }
 
