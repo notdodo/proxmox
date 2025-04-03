@@ -1,1 +1,1 @@
-# PromoxVE Configuration
+# ProxmoxVE Configuration
