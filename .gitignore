@@ -1,5 +1,7 @@
 *.pyc
 *.json
+*.pem
+*.ign
 venv/
 .terraform/
 terraform.*

@@ -1,0 +1,26 @@
+variant: flatcar
+version: 1.0.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ${ssh_authorized_keys}
+kernel_arguments:
+  should_not_exist:
+    - flatcar.autologin
+storage:
+  files:
+    - overwrite: true
+      path: /etc/hostname
+      contents:
+        inline: ${hostname}
+    - path: /etc/systemd/network/00-eth0.network
+      contents:
+        inline: |
+          [Match]
+          Name=eth0
+
+          [Network]
+          DNS=192.168.178.1
+          Address=${address}/24
+          Gateway=192.168.178.1

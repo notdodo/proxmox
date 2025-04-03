@@ -1,7 +1,7 @@
 variable "automation_user" {
   description = "ProxmoxVE PVE user to use for authentication"
   type        = string
-  default     = "operations-automation@pve"
+  default     = "operations-automation"
 }
 
 variable "automation_password" {
@@ -15,14 +15,14 @@ variable "proxmox_pve_node_name" {
   default     = "mainprox"
 }
 
-# https://github.com/siderolabs/talos/releases
-# https://www.talos.dev/v1.9/introduction/support-matrix/
-variable "talos_version" {
-  description = "Talos version to use"
+variable "proxmox_pve_node_ip" {
+  description = "IPv4 of the ProxmoxVE node"
   type        = string
-  default     = "1.9.5"
-  validation {
-    condition     = can(regex("^\\d+(\\.\\d+)+", var.talos_version))
-    error_message = "Must be a version number."
-  }
+  default     = "192.168.178.15"
+}
+
+variable "proxmox_pve_node_port" {
+  description = "Port of the ProxmoxVE node"
+  type        = string
+  default     = "8006"
 }
