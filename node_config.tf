@@ -38,3 +38,27 @@ module "proxmox_users" {
     # }
   ]
 }
+
+resource "proxmox_virtual_environment_acme_account" "default" {
+  name      = "default"
+  contact   = "edoardo.rosa90+proxmox-acme@gmail.com"
+  directory = "https://acme-staging-v02.api.letsencrypt.org/directory"
+  tos       = "https://letsencrypt.org/documents/LE-SA-v1.3-September-21-2022.pdf"
+}
+
+resource "proxmox_virtual_environment_acme_dns_plugin" "cloudflare_dns" {
+  plugin           = "cloudflare-dns"
+  api              = "cf"
+  digest           = "28bdb1d86b3fe4fca290233252c3b22dc8e5e681"
+  validation_delay = 0
+
+  data = {
+    CF_Account_ID = "938405242b51a1caf73f0b661bfb3dc2"
+    CF_Zone_ID    = "cec5bf01afed114303a536c264a1f394"
+  }
+
+  lifecycle {
+    # `data` manually managed
+    ignore_changes = [data]
+  }
+}
