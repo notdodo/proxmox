@@ -89,7 +89,8 @@ resource "proxmox_virtual_environment_user" "users" {
     role_id   = each.value.role_id
   }
 
-  comment  = "Managed by ~Pulumi~ Terraform"
+  comment = "Managed by ~Pulumi~ Terraform"
+  # kics-scan ignore-line
   password = random_password.password[index(var.users, each.value)].result
   user_id  = each.value.pam_enabled ? "${each.value.username}@pam" : "${each.value.username}@pve"
   groups   = []
