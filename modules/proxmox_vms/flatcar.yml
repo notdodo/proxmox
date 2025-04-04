@@ -24,3 +24,13 @@ storage:
           DNS=192.168.178.1
           Address=${address}/24
           Gateway=192.168.178.1
+  links:
+    - path: /etc/systemd/system/multi-user.target.wants/docker.service
+      target: /usr/lib/systemd/system/docker.service
+      hard: false
+      overwrite: true
+systemd:
+  units:
+    # Ensure docker starts automatically instead of being only socket-activated
+    - name: docker.service
+      enabled: true
