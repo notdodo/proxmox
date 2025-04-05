@@ -24,6 +24,16 @@ storage:
           DNS=192.168.178.1
           Address=${address}/24
           Gateway=192.168.178.1
+    - path: /etc/systemd/network/00-eth1.network
+      contents:
+        inline: |
+          [Match]
+          Name=eth1
+
+          [Network]
+          DNS=10.0.100.1
+          Address=${private_address}/24
+          Gateway=10.0.100.1
   links:
     - path: /etc/systemd/system/multi-user.target.wants/docker.service
       target: /usr/lib/systemd/system/docker.service

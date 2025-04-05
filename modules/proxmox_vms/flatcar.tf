@@ -22,6 +22,7 @@ data "ct_config" "flatcar" {
     ssh_authorized_keys = tls_private_key.flatcar_key.public_key_openssh
     hostname            = count.index == 0 ? "main" : "worker${count.index}"
     address             = "192.168.178.10${count.index}"
+    private_address     = "10.0.100.${count.index}"
   })
   pretty_print = false
   strict       = true
@@ -107,7 +108,11 @@ resource "proxmox_virtual_environment_vm" "flatcar_cluster_main" {
   }
 
   network_device {
-    bridge = "vmbr0"
+    bridge = var.default_network
+  }
+
+  network_device {
+    bridge = var.flatcar_network
   }
 
   memory {
@@ -139,7 +144,11 @@ resource "proxmox_virtual_environment_vm" "flatcar_cluster_workers" {
   }
 
   network_device {
-    bridge = "vmbr0"
+    bridge = var.default_network
+  }
+
+  network_device {
+    bridge = var.flatcar_network
   }
 
   memory {

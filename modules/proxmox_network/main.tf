@@ -32,3 +32,12 @@ resource "proxmox_virtual_environment_network_linux_bridge" "vmbr0" {
     "enp44s0"
   ]
 }
+
+resource "proxmox_virtual_environment_network_linux_bridge" "flatcar_network" {
+  node_name = var.proxmox_pve_node_name
+  name      = "vmbr100"
+
+  address   = "10.0.100.0/24"
+  autostart = true
+  comment   = "Managed by ~Pulumi~ Terraform; dedicated to internal LAN for Flatcar cluster"
+}

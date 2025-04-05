@@ -31,11 +31,6 @@ module "proxmox_users" {
       role_id     = "Operations"
       pam_enabled = false
     },
-    # {
-    #   username    = "notdodo"
-    #   role_id     = "Administrator"
-    #   pam_enabled = true
-    # }
   ]
 }
 
