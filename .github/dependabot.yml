@@ -1,6 +1,22 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: /
+    schedule:
+      interval: monthly
+      time: "12:00"
+      day: wednesday
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
   - package-ecosystem: "terraform"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: monthly
+      time: "12:00"
+      day: wednesday
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
