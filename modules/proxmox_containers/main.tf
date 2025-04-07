@@ -46,7 +46,7 @@ resource "tls_private_key" "adguard_ssh_key" {
 
 resource "local_file" "adguard_ssh_key" {
   content  = tls_private_key.adguard_ssh_key.private_key_openssh
-  filename = "adguard_ssh_key.pem"
+  filename = "./keys/adguard_ssh_key.pem"
 }
 
 resource "proxmox_virtual_environment_container" "adguard_home" {

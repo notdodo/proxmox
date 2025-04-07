@@ -5,4 +5,8 @@
 venv/
 .terraform/
 terraform.*
+!terraform.*.enc
 .terraform.tfstate
+etcs
+modules/portainer
+keys

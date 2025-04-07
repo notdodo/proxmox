@@ -35,6 +35,6 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("./root_node_ssh_key.pem")
+    private_key = file("./keys/root_node_ssh_key.pem")
   }
 }

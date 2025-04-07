@@ -4,7 +4,7 @@ resource "tls_private_key" "root_key" {
 
 resource "local_file" "root_private_key" {
   content  = tls_private_key.root_key.private_key_openssh
-  filename = "root_node_ssh_key.pem"
+  filename = "./keys/root_node_ssh_key.pem"
 }
 
 module "proxmox_network" {
