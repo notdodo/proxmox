@@ -8,3 +8,14 @@ module "proxmox_vms" {
   # kics-scan ignore-line
   root_private_key = tls_private_key.root_key.private_key_openssh
 }
+
+module "proxmox_containers" {
+  source                = "./modules/proxmox_containers"
+  proxmox_pve_node_name = var.proxmox_pve_node_name
+  default_network       = module.proxmox_network.default_network.name
+}
+
+
+module "portainer" {
+  source = "./modules/portainer"
+}

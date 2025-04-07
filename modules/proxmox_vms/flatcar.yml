@@ -44,3 +44,6 @@ systemd:
     # Ensure docker starts automatically instead of being only socket-activated
     - name: docker.service
       enabled: true
+    # Disable systemd-resolved to install AdGuard/PiHole
+    - name: systemd-resolved.service
+      enabled: false

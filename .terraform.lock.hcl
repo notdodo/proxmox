@@ -24,6 +24,26 @@ provider "registry.terraform.io/bpg/proxmox" {
   ]
 }
 
+provider "registry.terraform.io/grulicht/portainer" {
+  version     = "1.0.2"
+  constraints = ">= 1.0.2"
+  hashes = [
+    "h1:b+SwfXLvjIY2QAlOFZ/NTeG+MXybdM38O0w+zBqMUjU=",
+    "zh:07d05bf937a3025e3fe6a61b191b69eaf476a85b07abb557b019b10b94875079",
+    "zh:1794b8c30acd43fe48f190055d5504dc1cbfee565c8c0f3477d451d8903edf4f",
+    "zh:2cb94172c03746b065b18e82281616dd05302fd83c2035777a47a254ff392d1c",
+    "zh:370fcfed3b00162ba89442a92486d510227c95fdbe0f0519f2596dd21c784309",
+    "zh:3e5713fd479b0814e7c52e44553df74dcf87d6a5513b7a4a21ef739b2643259a",
+    "zh:4a10393a106c2d1d7aa356940d535d29eb4eb87ff2a133abdc3dac19c2948e25",
+    "zh:561d64c05b5d8fd583cdd080d60acfc667c273c0aa3b3be9ec60719799a6321c",
+    "zh:9b366b9f63aea3b32ef9252f25b89812deb5afde2c46832571a140c1d6d01e40",
+    "zh:c5a300b086a24a0b73a1634ece699de7cae352aa9f12493037b7b1d0dc9bf04c",
+    "zh:ca97354a7cb82dc810a8e47930c3fe820720929e20ab58e212bf9bfe84ce3e62",
+    "zh:e31b327ea1dcc574050b3177ae5146bc0fdcf028945e27c2cad70d38da9801fa",
+    "zh:f262322d701059e4a572a0270a0e2ab4a563d8ad158c9ade22c52f9b5a708153",
+  ]
+}
+
 provider "registry.terraform.io/hashicorp/http" {
   version = "3.4.5"
   hashes = [
