@@ -6,3 +6,5 @@ venv/
 .terraform/
 terraform.*
 .terraform.tfstate*
+./modules/portainer/
+./etcs/
