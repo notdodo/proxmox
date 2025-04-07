@@ -101,7 +101,6 @@ resource "proxmox_virtual_environment_vm" "flatcar_cluster_main" {
     enabled = true
   }
 
-
   initialization {
     datastore_id = "local-lvm"
     interface    = "ide2"
@@ -119,7 +118,6 @@ resource "proxmox_virtual_environment_vm" "flatcar_cluster_main" {
     dedicated = 1024 * 2
   }
 }
-
 
 resource "proxmox_virtual_environment_vm" "flatcar_cluster_workers" {
   count         = 2

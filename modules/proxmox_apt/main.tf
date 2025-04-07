@@ -8,11 +8,6 @@ terraform {
   }
 }
 
-variable "proxmox_pve_node_name" {
-  description = "Name of the ProxmoxVE node"
-  type        = string
-}
-
 resource "proxmox_virtual_environment_apt_standard_repository" "nosubscription_source" {
   handle = "no-subscription"
   node   = var.proxmox_pve_node_name

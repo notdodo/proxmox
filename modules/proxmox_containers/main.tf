@@ -13,16 +13,6 @@ terraform {
   }
 }
 
-variable "proxmox_pve_node_name" {
-  description = "Name of the ProxmoxVE node"
-  type        = string
-}
-
-variable "default_network" {
-  description = "Default network (vmbr0)"
-  type        = string
-}
-
 resource "proxmox_virtual_environment_download_file" "latest_alpine" {
   content_type = "vztmpl"
   datastore_id = "local"
@@ -85,12 +75,9 @@ resource "proxmox_virtual_environment_container" "adguard_home" {
 
   operating_system {
     template_file_id = proxmox_virtual_environment_download_file.latest_alpine.id
-    # Or you can use a volume ID, as obtained from a "pvesm list <storage>"
-    # template_file_id = "local:vztmpl/jammy-server-cloudimg-amd64.tar.gz"
-    type = "alpine"
+    type             = "alpine"
   }
 }
-
 
 resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
   description = "Managed by ~Pulumi~ Terraform; to use this template you need to install openssh-server and enable the service<br/>`apk update; apk add openssh-server openssh`<br/>`rc-update add sshd default; service sshd start`"
