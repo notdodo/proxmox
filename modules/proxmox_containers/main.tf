@@ -44,6 +44,11 @@ resource "tls_private_key" "adguard_ssh_key" {
   algorithm = "ED25519"
 }
 
+resource "local_file" "adguard_ssh_key" {
+  content  = tls_private_key.adguard_ssh_key.private_key_openssh
+  filename = "adguard_ssh_key.pem"
+}
+
 resource "proxmox_virtual_environment_container" "adguard_home" {
   description = "Managed by ~Pulumi~ Terraform"
   node_name   = var.proxmox_pve_node_name
@@ -69,7 +74,7 @@ resource "proxmox_virtual_environment_container" "adguard_home" {
   }
 
   network_interface {
-    name = "vmbr0"
+    name = var.default_network
   }
 
   disk {
@@ -82,5 +87,89 @@ resource "proxmox_virtual_environment_container" "adguard_home" {
     # Or you can use a volume ID, as obtained from a "pvesm list <storage>"
     # template_file_id = "local:vztmpl/jammy-server-cloudimg-amd64.tar.gz"
     type = "alpine"
+  }
+}
+
+
+resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
+  description = "Managed by ~Pulumi~ Terraform; to use this template you need to install openssh-server and enable the service<br/>`apk update; apk add openssh-server openssh`<br/>`rc-update add sshd default; service sshd start`"
+  node_name   = var.proxmox_pve_node_name
+  tags        = ["lxc", "template"]
+  vm_id       = 8000
+  template    = true
+
+  initialization {
+    hostname = "alpine-template"
+    user_account {
+      keys = [
+        trimspace(tls_private_key.adguard_ssh_key.public_key_openssh)
+      ]
+      password = random_password.adguard_container_password.result
+    }
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    size         = 2
+  }
+
+  operating_system {
+    template_file_id = proxmox_virtual_environment_download_file.latest_alpine.id
+    type             = "alpine"
+  }
+}
+
+resource "proxmox_virtual_environment_container" "adguard_test" {
+  description = "AdGuardHome secondary/test"
+  node_name   = var.proxmox_pve_node_name
+  tags        = ["lxc", "adguard"]
+  vm_id       = 501
+  clone {
+    vm_id = proxmox_virtual_environment_container.alpine_lxc_template.vm_id
+  }
+
+  initialization {
+    hostname = "adguard2"
+
+    ip_config {
+      ipv4 {
+        address = "192.168.178.201/24"
+        gateway = "192.168.178.1"
+      }
+    }
+  }
+
+  network_interface {
+    name = var.default_network
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    size         = 2
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "root"
+    host        = "192.168.178.201"
+    private_key = tls_private_key.adguard_ssh_key.private_key_openssh
+  }
+
+  provisioner "file" {
+    content = templatefile("${path.module}/AdGuardHome.yaml", {
+      password = "${bcrypt(random_password.adguard_container_password.result, 2)}"
+    })
+    destination = "/tmp/AdGuardHome.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "apk update",
+      "apk upgrade",
+      "apk add adguardhome --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing",
+      "rc-update add adguardhome default",
+      "mv /tmp/AdGuardHome.yaml /var/lib/adguardhome/AdGuardHome.yaml",
+      "service adguardhome start",
+    ]
   }
 }
