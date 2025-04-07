@@ -69,6 +69,7 @@ resource "proxmox_virtual_environment_container" "adguard_home" {
       keys = [
         trimspace(tls_private_key.adguard_ssh_key.public_key_openssh)
       ]
+      # kics-scan ignore-line
       password = random_password.adguard_container_password.result
     }
   }
@@ -104,6 +105,7 @@ resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
       keys = [
         trimspace(tls_private_key.adguard_ssh_key.public_key_openssh)
       ]
+      # kics-scan ignore-line
       password = random_password.adguard_container_password.result
     }
   }
@@ -149,9 +151,10 @@ resource "proxmox_virtual_environment_container" "adguard_test" {
   }
 
   connection {
-    type        = "ssh"
-    user        = "root"
-    host        = "192.168.178.201"
+    type = "ssh"
+    user = "root"
+    host = "192.168.178.201"
+    # kics-scan ignore-line
     private_key = tls_private_key.adguard_ssh_key.private_key_openssh
   }
 
