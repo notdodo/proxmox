@@ -9,6 +9,12 @@ terraform {
 
   required_version = ">=1.11.0"
   required_providers {
+
+    acme = {
+      source  = "vancluever/acme"
+      version = ">=2.31.0"
+    }
+
     local = {
       source  = "hashicorp/local"
       version = ">=2.5.2"
@@ -16,7 +22,7 @@ terraform {
 
     proxmox = {
       source  = "bpg/proxmox"
-      version = ">=0.74.1"
+      version = ">=0.75.0"
     }
 
     tls = {

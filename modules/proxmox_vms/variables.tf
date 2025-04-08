@@ -3,16 +3,6 @@ variable "proxmox_pve_node_name" {
   type        = string
 }
 
-variable "root_private_key" {
-  description = "IPv4 of the ProxmoxVE node"
-  type        = string
-}
-
-variable "proxmox_pve_node_ip" {
-  description = "SSH Private key for root user"
-  type        = string
-}
-
 variable "default_network" {
   description = "Default network (vmbr0)"
   type        = string
