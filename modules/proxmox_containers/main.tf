@@ -54,11 +54,6 @@ resource "tls_private_key" "adguard_ssh_key" {
   algorithm = "ED25519"
 }
 
-resource "local_file" "adguard_ssh_key" {
-  content  = tls_private_key.adguard_ssh_key.private_key_openssh
-  filename = "./keys/adguard_ssh_key.pem"
-}
-
 resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
   description = "Managed by ~Pulumi~ Terraform; to use this template you need to install openssh-server and enable the service<br/>`apk update; apk add openssh-server openssh`<br/>`rc-update add sshd default; service sshd start`"
   node_name   = var.proxmox_pve_node_name

@@ -2,11 +2,6 @@ resource "tls_private_key" "root_key" {
   algorithm = "ED25519"
 }
 
-resource "local_file" "root_private_key" {
-  content  = tls_private_key.root_key.private_key_openssh
-  filename = "./keys/root_node_ssh_key.pem"
-}
-
 module "proxmox_network" {
   source                = "./modules/proxmox_network"
   proxmox_pve_node_name = var.proxmox_pve_node_name

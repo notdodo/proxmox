@@ -11,11 +11,6 @@ resource "tls_private_key" "flatcar_key" {
   algorithm = "ED25519"
 }
 
-resource "local_file" "private_key" {
-  content  = tls_private_key.flatcar_key.private_key_openssh
-  filename = "./keys/flatcar_ssh_key.pem"
-}
-
 data "ct_config" "flatcar" {
   count = 3
   content = templatefile("${path.module}/flatcar.yml", {

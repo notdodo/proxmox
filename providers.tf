@@ -36,9 +36,9 @@ provider "proxmox" {
   username = strcontains(var.automation_user, "@p") ? var.automation_user : "${var.automation_user}@pve"
   password = var.automation_password
 
-  ssh {
-    agent       = true
-    username    = "root"
-    private_key = file("./keys/root_node_ssh_key.pem")
-  }
+  # ssh {
+  #   agent       = true
+  #   username    = "root"
+  #   private_key = file("./keys/root_node_ssh_key.pem")
+  # }
 }
