@@ -26,6 +26,7 @@ jobs:
       actions: read
       security-events: write
       contents: read
+      pull-requests: write
       id-token: write
     uses: notdodo/github-actions/.github/workflows/terraform-ci.yml@terraform-ci-v0
     with:
