@@ -1,10 +1,8 @@
 terraform {
   backend "s3" {
-    bucket       = "notdodo-terraform"
-    key          = "proxmox"
-    region       = "eu-west-1"
-    use_lockfile = true
-    profile      = "dodo"
+    bucket = "notdodo-terraform"
+    key    = "proxmox"
+    region = "eu-west-1"
   }
 
   required_version = ">=1.11.0"
@@ -13,11 +11,6 @@ terraform {
     acme = {
       source  = "vancluever/acme"
       version = ">=2.31.0"
-    }
-
-    local = {
-      source  = "hashicorp/local"
-      version = ">=2.5.2"
     }
 
     proxmox = {
@@ -38,9 +31,9 @@ provider "proxmox" {
   username = strcontains(var.automation_user, "@p") ? var.automation_user : "${var.automation_user}@pve"
   password = var.automation_password
 
-  ssh {
-    agent       = true
-    username    = "root"
-    private_key = file("./keys/root_node_ssh_key.pem")
-  }
+  # ssh {
+  #   agent       = true
+  #   username    = "root"
+  #   private_key = file("./keys/root_node_ssh_key.pem")
+  # }
 }

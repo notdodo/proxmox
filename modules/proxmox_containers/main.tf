@@ -1,11 +1,6 @@
 terraform {
   required_version = ">=1.11.0"
   required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = ">=2.5.2"
-    }
-
     null = {
       source  = "hashicorp/null"
       version = ">=3.2.3"
@@ -52,11 +47,6 @@ resource "random_password" "adguard_container_password" {
 
 resource "tls_private_key" "adguard_ssh_key" {
   algorithm = "ED25519"
-}
-
-resource "local_file" "adguard_ssh_key" {
-  content  = tls_private_key.adguard_ssh_key.private_key_openssh
-  filename = "./keys/adguard_ssh_key.pem"
 }
 
 resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
@@ -185,9 +175,10 @@ resource "null_resource" "wait_for_adguard_primary" {
 
   provisioner "remote-exec" {
     connection {
-      type        = "ssh"
-      user        = "root"
-      host        = "192.168.178.200"
+      type = "ssh"
+      user = "root"
+      host = "192.168.178.200"
+      # kics-scan ignore-line
       private_key = tls_private_key.adguard_ssh_key.private_key_openssh
       timeout     = "5m"
     }
