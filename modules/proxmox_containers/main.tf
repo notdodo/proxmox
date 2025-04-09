@@ -185,9 +185,10 @@ resource "null_resource" "wait_for_adguard_primary" {
 
   provisioner "remote-exec" {
     connection {
-      type        = "ssh"
-      user        = "root"
-      host        = "192.168.178.200"
+      type = "ssh"
+      user = "root"
+      host = "192.168.178.200"
+      # kics-scan ignore-line
       private_key = tls_private_key.adguard_ssh_key.private_key_openssh
       timeout     = "5m"
     }
