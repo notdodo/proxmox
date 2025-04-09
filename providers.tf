@@ -1,10 +1,8 @@
 terraform {
   backend "s3" {
-    bucket       = "notdodo-terraform"
-    key          = "proxmox"
-    region       = "eu-west-1"
-    use_lockfile = true
-    profile      = "dodo"
+    bucket = "notdodo-terraform"
+    key    = "proxmox"
+    region = "eu-west-1"
   }
 
   required_version = ">=1.11.0"
