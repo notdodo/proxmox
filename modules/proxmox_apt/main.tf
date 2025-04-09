@@ -3,14 +3,9 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = ">=0.74.1"
+      version = ">=0.75.0"
     }
   }
-}
-
-variable "proxmox_pve_node_name" {
-  description = "Name of the ProxmoxVE node"
-  type        = string
 }
 
 resource "proxmox_virtual_environment_apt_standard_repository" "nosubscription_source" {

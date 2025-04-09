@@ -18,7 +18,7 @@ kics: ## Run kics
 	docker run --rm -v $(DIR):/path -t checkmarx/kics scan -p /path -o "/path/" --ci
 
 lint: ## Launch the linting tools
-	docker run --rm -v $(DIR):/data -t ghcr.io/terraform-linters/tflint 
+	docker run --rm -v $(DIR):/data -t ghcr.io/terraform-linters/tflint --chdir /data --recursive
 
 trivy:
 	docker run -v $(DIR):/app aquasec/trivy fs --scanners misconfig /app
@@ -26,7 +26,7 @@ trivy:
 validate: ## Validate terraform syntax
 	terraform validate .
 
-secure: checkov trivy kics
+secure: trivy checkov kics
 check: validate format lint secure # Run all checks
 
 help: ## Show the available commands

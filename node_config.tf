@@ -4,7 +4,7 @@ resource "tls_private_key" "root_key" {
 
 resource "local_file" "root_private_key" {
   content  = tls_private_key.root_key.private_key_openssh
-  filename = "root_node_ssh_key.pem"
+  filename = "./keys/root_node_ssh_key.pem"
 }
 
 module "proxmox_network" {
@@ -23,8 +23,7 @@ module "proxmox_pools" {
 }
 
 module "proxmox_users" {
-  source                = "./modules/proxmox_users"
-  proxmox_pve_node_name = var.proxmox_pve_node_name
+  source = "./modules/proxmox_users"
   users = [
     {
       username    = "operations-automation"
@@ -36,7 +35,7 @@ module "proxmox_users" {
 
 resource "proxmox_virtual_environment_acme_account" "default" {
   name      = "default"
-  contact   = "edoardo.rosa90+proxmox-acme@gmail.com"
+  contact   = var.acme_email_address
   directory = "https://acme-v02.api.letsencrypt.org/directory"
   tos       = "https://letsencrypt.org/documents/LE-SA-v1.5-February-24-2025.pdf"
 }

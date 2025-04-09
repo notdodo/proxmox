@@ -1,9 +1,9 @@
 output "default_network" {
-  description = "Default network for Linux Bridge (vmbr0)"
+  description = "Default Linux Bridge interface"
   value       = proxmox_virtual_environment_network_linux_bridge.vmbr0
 }
 
 output "flatcar_network" {
-  description = "Dedicated Linux Bridge for Flatcar"
+  description = "Linux Bridge interface for Flatcar cluster"
   value       = proxmox_virtual_environment_network_linux_bridge.flatcar_network
 }

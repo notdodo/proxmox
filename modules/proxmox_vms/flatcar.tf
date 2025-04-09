@@ -13,7 +13,7 @@ resource "tls_private_key" "flatcar_key" {
 
 resource "local_file" "private_key" {
   content  = tls_private_key.flatcar_key.private_key_openssh
-  filename = "flatcar_ssh_key.pem"
+  filename = "./keys/flatcar_ssh_key.pem"
 }
 
 data "ct_config" "flatcar" {
@@ -101,7 +101,6 @@ resource "proxmox_virtual_environment_vm" "flatcar_cluster_main" {
     enabled = true
   }
 
-
   initialization {
     datastore_id = "local-lvm"
     interface    = "ide2"
@@ -119,7 +118,6 @@ resource "proxmox_virtual_environment_vm" "flatcar_cluster_main" {
     dedicated = 1024 * 2
   }
 }
-
 
 resource "proxmox_virtual_environment_vm" "flatcar_cluster_workers" {
   count         = 2

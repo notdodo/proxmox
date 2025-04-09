@@ -3,7 +3,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = ">=0.74.1"
+      version = ">=0.75.0"
     }
 
     random = {
@@ -11,22 +11,6 @@ terraform {
       version = ">=3.7.1"
     }
   }
-}
-
-variable "proxmox_pve_node_name" {
-  description = "Name of the ProxmoxVE node"
-  type        = string
-}
-
-variable "users" {
-  description = "List of Users with roles"
-  type = list(object(
-    {
-      username    = string
-      role_id     = string
-      pam_enabled = bool
-    }
-  ))
 }
 
 resource "random_password" "password" {
