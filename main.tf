@@ -23,8 +23,8 @@ module "proxmox_vms" {
   source                = "./modules/proxmox_vms"
   proxmox_pve_node_name = var.proxmox_pve_node_name
   default_network       = module.proxmox_network.default_network.name
-  flatcar_pool_id       = module.proxmox_pools.flatcar_pool.id
-  flatcar_network       = module.proxmox_network.flatcar_network.name
+  portainer_pool_id     = module.proxmox_pools.portainer_pool.id
+  portainer_network     = module.proxmox_network.portainer_network.name
 }
 
 module "proxmox_containers" {

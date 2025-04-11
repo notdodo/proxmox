@@ -8,12 +8,12 @@ variable "default_network" {
   type        = string
 }
 
-variable "flatcar_network" {
-  description = "Network interface for private comms for Flatcar"
+variable "portainer_network" {
+  description = "Network interface for private comms for Portainer"
   type        = string
 }
 
-variable "flatcar_pool_id" {
-  description = "Flatcar PVE resource pool id"
+variable "portainer_pool_id" {
+  description = "Portainer PVE resource pool id"
   type        = string
 }

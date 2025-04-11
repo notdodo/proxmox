@@ -1,0 +1,74 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+apt:
+  preserve_sources_list: true
+  sources:
+    docker.list:
+      source: deb [arch=amd64 signed-by=$KEY_FILE] https://download.docker.com/linux/ubuntu oracular stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+
+packages:
+  - cephadm
+  - ceph-common
+  - docker-ce
+  - docker-ce-cli
+  - qemu-guest-agent
+
+write_files:
+  - path: /etc/ceph/ceph-ssh-private.key
+    content: |
+      ${ssh_key}
+    permissions: 0600
+  - path: /etc/ceph/ceph-ssh-pub.key
+    content: |
+      ${ssh_pub_key}
+    permissions: 0644
+  - path: /home/core/ceph-bootstrap.sh
+    content: |
+      #!/bin/bash
+      LABEL=${label}
+      if [[ $LABEL =~ "bootstrap" ]]; then
+        cephadm bootstrap --mon-ip 192.168.178.100 \
+          --cluster-network 10.0.100.0/24 \
+          --ssh-user core \
+          --fsid c739459e-16df-11f0-8000-bc2411dec559 \
+          --ssh-private-key /etc/ceph/ceph-ssh-private.key \
+          --ssh-public-key /etc/ceph/ceph-ssh-pub.key \
+          --initial-dashboard-user notdodo \
+          --initial-dashboard-password notdodo
+        ceph orch host add portainer-node-2 10.0.100.2 _admin
+        ceph orch host add portainer-node-3 10.0.100.3 _admin
+        ceph orch apply osd --all-available-devices
+        ceph fs volume create data
+      fi
+
+      echo "* * * * * root mountpoint -q /var/lib/docker/volumes || /bin/mount -t ceph admin@.data=/ /var/lib/docker/volumes" >> /etc/crontab
+    permissions: 0755
+  - path: /home/core/swarm-bootstrap.sh
+    content: |
+      #!/bin/bash
+      LABEL=${label}
+      if [[ $LABEL =~ "bootstrap" ]]; then
+        mountpoint -q /var/lib/docker/volumes || sleep 70
+        docker swarm init --advertise-addr 10.0.100.1 --listen-addr 10.0.100.1
+        docker swarm join-token manager | grep "SWMTKN" > /root/swarm.sh
+        ssh -o "StrictHostKeyChecking no" -i /etc/ceph/ceph-ssh-private.key core@192.168.178.101 sudo $(cat /root/swarm.sh)
+        ssh -o "StrictHostKeyChecking no" -i /etc/ceph/ceph-ssh-private.key core@192.168.178.102 sudo $(cat /root/swarm.sh)
+        curl -L https://downloads.portainer.io/ce-lts/portainer-agent-stack.yml -o portainer-agent-stack.yml
+        docker stack deploy -c portainer-agent-stack.yml portainer
+      fi
+    permissions: 0755
+
+runcmd:
+  - [systemctl, daemon-reexec]
+  - [systemctl, daemon-reload]
+  - [systemctl, enable, --now, qemu-guest-agent]
+  - [systemctl, enable, --now, docker]
+  - [bash, /home/core/ceph-bootstrap.sh]
+  - [rm, -f, /home/core/ceph-bootstrap.sh]
+  - [bash, /home/core/swarm-bootstrap.sh]
+  - [rm, -f, /home/core/swarm-bootstrap.sh]
+  - [rm, /root/swarm.sh]

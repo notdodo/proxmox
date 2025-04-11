@@ -8,7 +8,7 @@ terraform {
   }
 }
 
-resource "proxmox_virtual_environment_pool" "flatcar_pool" {
+resource "proxmox_virtual_environment_pool" "portainer_pool" {
   comment = "Managed by ~Pulumi~ Terraform"
-  pool_id = "flatcar"
+  pool_id = "portainer"
 }
