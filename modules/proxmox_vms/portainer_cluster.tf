@@ -43,8 +43,8 @@ resource "proxmox_virtual_environment_vm" "portainer_node" {
   node_name       = var.proxmox_pve_node_name
   pool_id         = var.portainer_pool_id
   vm_id           = "10${count.index}"
-  tags            = ["debian", "portainer"]
-  description     = "Portainer node"
+  tags            = ["node-${count.index + 1}", "portainer", "ubuntu"]
+  description     = "Portainer node-${count.index + 1}"
   stop_on_destroy = true
 
   initialization {
@@ -80,7 +80,7 @@ resource "proxmox_virtual_environment_vm" "portainer_node" {
   }
 
   memory {
-    dedicated = 1024 * 2
+    dedicated = 1024 * 4
   }
 
   network_device {
@@ -95,13 +95,16 @@ resource "proxmox_virtual_environment_vm" "portainer_node" {
     datastore_id = "local-lvm"
     file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_img.id
     interface    = "scsi0"
+    size         = 20
+    cache        = "writeback"
     discard      = "on"
-    size         = 15
   }
 
   disk {
     datastore_id = "local-lvm"
     interface    = "scsi1"
-    size         = 20
+    size         = 25
+    cache        = "writeback"
+    discard      = "on"
   }
 }

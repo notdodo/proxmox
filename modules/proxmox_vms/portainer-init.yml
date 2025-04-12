@@ -45,6 +45,8 @@ write_files:
         ceph fs volume create data
       fi
 
+      # Sleep for OSD to complete
+      sleep 30
       echo "* * * * * root mountpoint -q /var/lib/docker/volumes || /bin/mount -t ceph admin@.data=/ /var/lib/docker/volumes" >> /etc/crontab
     permissions: 0755
   - path: /home/core/swarm-bootstrap.sh
@@ -52,7 +54,7 @@ write_files:
       #!/bin/bash
       LABEL=${label}
       if [[ $LABEL =~ "bootstrap" ]]; then
-        mountpoint -q /var/lib/docker/volumes || sleep 70
+        mountpoint -q /var/lib/docker/volumes || sleep 61
         docker swarm init --advertise-addr 10.0.100.1 --listen-addr 10.0.100.1
         docker swarm join-token manager | grep "SWMTKN" > /root/swarm.sh
         ssh -o "StrictHostKeyChecking no" -i /etc/ceph/ceph-ssh-private.key core@192.168.178.101 sudo $(cat /root/swarm.sh)
