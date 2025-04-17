@@ -2,8 +2,8 @@ terraform {
   required_version = ">=1.11.0"
   required_providers {
     portainer = {
-      source  = "grulicht/portainer"
-      version = ">=1.0.2"
+      source  = "portainer/portainer"
+      version = ">=1.0.1"
     }
   }
 }
