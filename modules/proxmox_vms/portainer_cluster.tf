@@ -1,3 +1,29 @@
+locals {
+  portainer_nodes = {
+    portainer-node-1 = {
+      lan_ip          = "192.168.178.100/24"
+      lan_gateway     = "192.168.178.1"
+      cluster_ip      = "10.0.100.1/24"
+      cluster_gateway = "10.0.100.1"
+      bootstrap       = true
+    }
+    portainer-node-2 = {
+      lan_ip          = "192.168.178.101/24"
+      lan_gateway     = "192.168.178.1"
+      cluster_ip      = "10.0.100.2/24"
+      cluster_gateway = "10.0.100.1"
+      bootstrap       = false
+    }
+    portainer-node-3 = {
+      lan_ip          = "192.168.178.102/24"
+      lan_gateway     = "192.168.178.1"
+      cluster_ip      = "10.0.100.3/24"
+      cluster_gateway = "10.0.100.1"
+      bootstrap       = false
+    }
+  }
+}
+
 resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_img" {
   content_type = "iso"
   datastore_id = "local"
@@ -9,18 +35,8 @@ resource "tls_private_key" "portainer_vm_key" {
   algorithm = "ED25519"
 }
 
-resource "random_password" "ceph_dashboard" {
-  length           = 20
-  special          = true
-  min_lower        = 1
-  min_numeric      = 1
-  min_special      = 1
-  min_upper        = 1
-  override_special = "!#$%?-_"
-}
-
 resource "proxmox_virtual_environment_file" "user_data_cloud_config" {
-  count        = 3
+  for_each     = local.portainer_nodes
   content_type = "snippets"
   datastore_id = "local"
   node_name    = var.proxmox_pve_node_name
@@ -29,22 +45,19 @@ resource "proxmox_virtual_environment_file" "user_data_cloud_config" {
     data = templatefile("${path.module}/portainer-init.yml", {
       ssh_key     = indent(6, tls_private_key.portainer_vm_key.private_key_openssh)
       ssh_pub_key = indent(6, tls_private_key.portainer_vm_key.public_key_openssh)
-      label       = count.index == 0 ? "bootstrap" : "not"
-      # kics-scan ignore-line
-      dashboard_password = random_password.ceph_dashboard.result
+      label       = each.value.bootstrap ? "bootstrap" : "not"
     })
-    file_name = "portainer-init-${count.index + 1}.yml"
+    file_name = "init-${each.key}.yml"
   }
 }
 
 resource "proxmox_virtual_environment_vm" "portainer_node" {
-  count           = 3
-  name            = "portainer-node-${count.index + 1}"
+  for_each        = local.portainer_nodes
+  name            = each.key
   node_name       = var.proxmox_pve_node_name
   pool_id         = var.portainer_pool_id
-  vm_id           = "10${count.index}"
-  tags            = ["node-${count.index + 1}", "portainer", "ubuntu"]
-  description     = "Portainer node-${count.index + 1}"
+  tags            = ["portainer", "ubuntu"]
+  description     = "${each.key} - Portainer Node"
   stop_on_destroy = true
 
   initialization {
@@ -55,24 +68,24 @@ resource "proxmox_virtual_environment_vm" "portainer_node" {
 
     ip_config {
       ipv4 {
-        address = "192.168.178.10${count.index}/24"
-        gateway = "192.168.178.1"
+        address = each.value.lan_ip
+        gateway = each.value.lan_gateway
       }
     }
 
     ip_config {
       ipv4 {
-        address = "10.0.100.${count.index + 1}/24"
-        gateway = "10.0.100.1"
+        address = each.value.cluster_ip
+        gateway = each.value.cluster_gateway
       }
     }
 
-    vendor_data_file_id = proxmox_virtual_environment_file.user_data_cloud_config[count.index].id
+    vendor_data_file_id = proxmox_virtual_environment_file.user_data_cloud_config[each.key].id
   }
 
   cpu {
     cores = 2
-    type  = "x86-64-v2-AES"
+    type  = "x86-64-v3"
   }
 
   agent {
@@ -95,7 +108,7 @@ resource "proxmox_virtual_environment_vm" "portainer_node" {
     datastore_id = "local-lvm"
     file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_img.id
     interface    = "scsi0"
-    size         = 20
+    size         = 25
     cache        = "writeback"
     discard      = "on"
   }

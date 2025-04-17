@@ -11,7 +11,7 @@ terraform {
 provider "portainer" {
   endpoint        = var.portainer_instance
   api_key         = var.portainer_api_key
-  skip_ssl_verify = true
+  skip_ssl_verify = false
 }
 
 resource "portainer_ssl" "cert_update" {
