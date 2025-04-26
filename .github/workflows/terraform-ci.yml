@@ -22,4 +22,4 @@ jobs:
     with:
       aws-role: arn:aws:iam::841162699174:role/proxmox-terraform-readonly
     secrets:
-      sops-decryption-key: ${{ secrets.AGE_KEY }}
+      sops-age-key: ${{ secrets.AGE_KEY }}
