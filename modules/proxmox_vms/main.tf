@@ -8,22 +8,22 @@ terraform {
 
     http = {
       source  = "hashicorp/http"
-      version = ">=3.4.5"
+      version = ">=3.5.0"
     }
 
     proxmox = {
       source  = "bpg/proxmox"
-      version = ">=0.75.0"
+      version = ">=0.78.0"
     }
 
     random = {
       source  = "hashicorp/random"
-      version = ">=3.7.1"
+      version = ">=3.7.2"
     }
 
     tls = {
       source  = "hashicorp/tls"
-      version = ">=4.0.6"
+      version = ">=4.1.0"
     }
   }
 }

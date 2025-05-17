@@ -3,17 +3,17 @@ terraform {
   required_providers {
     null = {
       source  = "hashicorp/null"
-      version = ">=3.2.3"
+      version = ">=3.2.4"
     }
 
     proxmox = {
       source  = "bpg/proxmox"
-      version = ">=0.75.0"
+      version = ">=0.78.0"
     }
 
     random = {
       source  = "hashicorp/random"
-      version = ">=3.7.1"
+      version = ">=3.7.2"
     }
 
     template = {
@@ -23,7 +23,7 @@ terraform {
 
     tls = {
       source  = "hashicorp/tls"
-      version = ">=4.0.6"
+      version = ">=4.1.0"
     }
   }
 }
@@ -32,7 +32,7 @@ resource "proxmox_virtual_environment_download_file" "latest_alpine" {
   content_type = "vztmpl"
   datastore_id = "local"
   node_name    = var.proxmox_pve_node_name
-  url          = "http://download.proxmox.com/images/system/alpine-3.20-default_20240908_amd64.tar.xz"
+  url          = "http://download.proxmox.com/images/system/alpine-3.21-default_20241217_amd64.tar.xz"
 }
 
 resource "random_password" "adguard_container_password" {

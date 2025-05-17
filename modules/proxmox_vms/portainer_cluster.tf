@@ -51,6 +51,15 @@ resource "proxmox_virtual_environment_file" "user_data_cloud_config" {
   }
 }
 
+resource "proxmox_virtual_environment_hardware_mapping_dir" "portainer_share" {
+  name = "portainer_share"
+
+  map = [{
+    node = var.proxmox_pve_node_name
+    path = "/mnt/portainer_share"
+  }]
+}
+
 resource "proxmox_virtual_environment_vm" "portainer_node" {
   for_each        = local.portainer_nodes
   name            = each.key
@@ -108,16 +117,13 @@ resource "proxmox_virtual_environment_vm" "portainer_node" {
     datastore_id = "local-lvm"
     file_id      = proxmox_virtual_environment_download_file.ubuntu_cloud_img.id
     interface    = "scsi0"
-    size         = 25
+    size         = 20
     cache        = "writeback"
     discard      = "on"
   }
 
-  disk {
-    datastore_id = "local-lvm"
-    interface    = "scsi1"
-    size         = 25
-    cache        = "writeback"
-    discard      = "on"
+  virtiofs {
+    mapping = proxmox_virtual_environment_hardware_mapping_dir.portainer_share.name
   }
+
 }

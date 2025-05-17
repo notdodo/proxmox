@@ -11,8 +11,6 @@ apt:
       keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
 
 packages:
-  - cephadm
-  - ceph-common
   - docker-ce
   - docker-ce-cli
   - qemu-guest-agent
@@ -26,21 +24,6 @@ write_files:
     content: |
       ${ssh_pub_key}
     permissions: 0644
-  - path: /etc/systemd/system/mnt-data.mount
-    content: |
-      [Unit]
-      Description=CephFS Mount
-      After=network.target
-      Wants=network-online.target
-      Before=docker.service
-
-      [Mount]
-      What=admin@.data=/
-      Where=/mnt/data
-      Type=ceph
-
-      [Install]
-      WantedBy=multi-user.target
   - path: /root/bootstrap/portainer-agent-stack.yml
     content: |
       version: '3.2'
@@ -66,7 +49,7 @@ write_files:
             - "9000:9000"
             - "8000:8000"
           volumes:
-            - /mnt/data/portainer_data/:/data
+            - /mnt/portainer_share/:/data
           networks:
             - agent_network
           deploy:
@@ -98,31 +81,27 @@ write_files:
           --initial-dashboard-password notdodo
         ceph orch host add portainer-node-2 10.0.100.2 _admin
         ceph orch host add portainer-node-3 10.0.100.3 _admin
-        ceph orch apply osd --all-available-devices
-        ceph fs volume create data
+        ceph orch daemon add osd portainer-node-2:/dev/sdb
+        ceph orch daemon add osd portainer-node-3:/dev/sdb
         ceph telemetry on --license sharing-1-0
         ceph telemetry enable channel perf
+        ceph osd pool create rbd
+        rbd pool init rbd
       fi
 
-      echo "10.0.100.1,10.0.100.2,10.0.100.3:/ /mnt/data ceph name=admin,config=/etc/ceph/ceph.config,_netdev 0 2" >> /etc/fstab
-      mkdir /mnt/data
-      while ! mountpoint -q /mnt/data; do
-        echo "Mount failed or not yet mounted. Retrying in 40 seconds..."
-        /bin/mount -t ceph admin@.data=/ /mnt/data || true
-        sleep 40
-      done
-      systemctl enable mnt-data.mount
     permissions: 0755
   - path: /root/bootstrap/swarm-bootstrap.sh
     content: |
       #!/bin/bash
       LABEL=${label}
+      mkdir /mnt/portainer_share/
+      echo "portainer_share /mnt/portainer_share/ virtiofs defaults 0 0" >> /etc/fstab
+      mount -a
       if [[ $LABEL =~ "bootstrap" ]]; then
         docker swarm init --advertise-addr 10.0.100.1 --listen-addr 10.0.100.1
         docker swarm join-token manager | grep "SWMTKN" > /root/bootstrap/swarm.sh
         ssh -o "StrictHostKeyChecking no" -i /etc/ceph/ceph-ssh-private.key core@192.168.178.101 sudo $(cat /root/bootstrap/swarm.sh)
         ssh -o "StrictHostKeyChecking no" -i /etc/ceph/ceph-ssh-private.key core@192.168.178.102 sudo $(cat /root/bootstrap/swarm.sh)
-        mkdir /mnt/data/portainer_data
         docker stack deploy -c /root/bootstrap/portainer-agent-stack.yml portainer
       fi
     permissions: 0755
@@ -132,6 +111,5 @@ runcmd:
   - [systemctl, daemon-reload]
   - [systemctl, enable, --now, qemu-guest-agent]
   - [systemctl, enable, --now, docker]
-  - [bash, /root/bootstrap/ceph-bootstrap.sh]
   - [bash, /root/bootstrap/swarm-bootstrap.sh]
   - [rm, -r, -f, /root/bootstrap/]
