@@ -32,7 +32,7 @@ resource "proxmox_virtual_environment_download_file" "latest_alpine" {
   content_type = "vztmpl"
   datastore_id = "local"
   node_name    = var.proxmox_pve_node_name
-  url          = "http://download.proxmox.com/images/system/alpine-3.21-default_20241217_amd64.tar.xz"
+  url          = "http://download.proxmox.com/images/system/alpine-3.22-default_20250617_amd64.tar.xz"
 }
 
 resource "random_password" "adguard_container_password" {

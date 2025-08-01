@@ -37,10 +37,10 @@ module "proxmox_containers" {
   adguard_login_bcrypt = var.adguard_login_bcrypt
 }
 
-module "portainer" {
-  source            = "./modules/portainer"
-  portainer_api_key = var.portainer_api_key
-  # kics-scan ignore-line
-  https_private_key = acme_certificate.thedodo.private_key_pem
-  https_cert        = acme_certificate.thedodo.certificate_pem
-}
+# module "portainer" {
+#   source            = "./modules/portainer"
+#   portainer_api_key = var.portainer_api_key
+#   # kics-scan ignore-line
+#   https_private_key = acme_certificate.thedodo.private_key_pem
+#   https_cert        = acme_certificate.thedodo.certificate_pem
+# }
