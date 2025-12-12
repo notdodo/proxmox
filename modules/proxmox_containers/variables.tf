@@ -22,3 +22,13 @@ variable "adguard_login_bcrypt" {
   description = "Bcrypt hash for AdGuard Web GUI"
   type        = string
 }
+
+variable "adguard_primary_config_template" {
+  description = "Template content for the primary AdGuard instance"
+  type        = string
+}
+
+variable "adguard_secondary_config_template" {
+  description = "Template content for the secondary AdGuard instance"
+  type        = string
+}

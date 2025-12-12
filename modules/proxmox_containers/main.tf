@@ -79,7 +79,7 @@ resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
 }
 
 data "template_file" "adguard_primary" {
-  template = file("${path.module}/AdGuardHome.yaml")
+  template = var.adguard_primary_config_template
   vars = {
     # kics-scan ignore-line
     password        = var.adguard_login_bcrypt
@@ -90,7 +90,7 @@ data "template_file" "adguard_primary" {
 }
 
 data "template_file" "adguard_secondary" {
-  template = file("${path.module}/AdGuardHome-test.yaml")
+  template = var.adguard_secondary_config_template
   vars = {
     # kics-scan ignore-line
     password        = var.adguard_login_bcrypt
