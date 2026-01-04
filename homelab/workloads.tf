@@ -66,15 +66,17 @@ module "proxmox_vms" {
 }
 
 module "proxmox_containers" {
-  source                = "../modules/proxmox_containers"
-  proxmox_pve_node_name = var.proxmox_pve_node_name
-  default_network       = module.proxmox_network.default_network.name
+  source                        = "../modules/proxmox_containers"
+  proxmox_pve_node_name         = var.proxmox_pve_node_name
+  default_network               = module.proxmox_network.default_network.name
+  adguard_admin_username        = var.adguard_username
+  adguard_login_bcrypt          = var.adguard_login_bcrypt
+  adguard_primary_server_name   = var.adguard_primary_server_name
+  adguard_secondary_server_name = var.adguard_secondary_server_name
   # kics-scan ignore-line
-  https_private_key                 = acme_certificate.thedodo.private_key_pem
-  https_cert                        = acme_certificate.thedodo.certificate_pem
-  adguard_login_bcrypt              = var.adguard_login_bcrypt
-  adguard_primary_config_template   = file(abspath("${path.root}/../files/templates/AdGuardHome.yaml"))
-  adguard_secondary_config_template = file(abspath("${path.root}/../files/templates/AdGuardHome-test.yaml"))
+  https_private_key = acme_certificate.thedodo.private_key_pem
+  https_cert        = acme_certificate.thedodo.certificate_pem
+  adguardhome_version = var.adguardhome_version
 }
 
 # module "portainer" {

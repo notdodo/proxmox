@@ -10,3 +10,5 @@
 *.tfvars.json
 !*.tfvars.example
 !*.tfvars.enc
+*.md
+!README.md

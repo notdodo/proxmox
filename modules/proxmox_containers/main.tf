@@ -16,11 +16,6 @@ terraform {
       version = ">=3.7.2"
     }
 
-    template = {
-      source  = "hashicorp/template"
-      version = "2.2.0"
-    }
-
     tls = {
       source  = "hashicorp/tls"
       version = ">=4.1.0"
@@ -28,11 +23,38 @@ terraform {
   }
 }
 
-resource "proxmox_virtual_environment_download_file" "latest_alpine" {
+moved {
+  from = proxmox_virtual_environment_container.alpine_lxc_template
+  to   = proxmox_virtual_environment_container.adguard_lxc_template
+}
+
+moved {
+  from = proxmox_virtual_environment_download_file.latest_turnkey_core
+  to   = proxmox_virtual_environment_download_file.latest_debian_standard
+}
+
+locals {
+  adguard_bootstrap_primary_config = templatefile("${path.module}/templates/adguard-bootstrap.yaml.tftpl", {
+    username        = var.adguard_admin_username
+    password_bcrypt = var.adguard_login_bcrypt
+    server_name     = var.adguard_primary_server_name
+    cert_pem        = var.https_cert
+    private_key_pem = var.https_private_key
+  })
+  adguard_bootstrap_secondary_config = templatefile("${path.module}/templates/adguard-bootstrap.yaml.tftpl", {
+    username        = var.adguard_admin_username
+    password_bcrypt = var.adguard_login_bcrypt
+    server_name     = var.adguard_secondary_server_name
+    cert_pem        = var.https_cert
+    private_key_pem = var.https_private_key
+  })
+}
+
+resource "proxmox_virtual_environment_download_file" "latest_debian_standard" {
   content_type = "vztmpl"
   datastore_id = "local"
   node_name    = var.proxmox_pve_node_name
-  url          = "http://download.proxmox.com/images/system/alpine-3.22-default_20250617_amd64.tar.xz"
+  url          = "http://download.proxmox.com/images/system/debian-13-standard_13.1-2_amd64.tar.zst"
 }
 
 resource "random_password" "adguard_container_password" {
@@ -49,15 +71,15 @@ resource "tls_private_key" "adguard_ssh_key" {
   algorithm = "ED25519"
 }
 
-resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
-  description = "Managed by ~Pulumi~ Terraform; to use this template you need to install openssh-server and enable the service<br/>`apk update; apk add openssh-server openssh`<br/>`rc-update add sshd default; service sshd start`"
+resource "proxmox_virtual_environment_container" "adguard_lxc_template" {
+  description = "Managed by ~Pulumi~ Terraform; Debian 13 standard LXC template (SSH enabled)"
   node_name   = var.proxmox_pve_node_name
   tags        = ["lxc", "template"]
   vm_id       = 8000
   template    = true
 
   initialization {
-    hostname = "alpine-template"
+    hostname = "adguard-template"
     user_account {
       keys = [
         trimspace(tls_private_key.adguard_ssh_key.public_key_openssh)
@@ -73,42 +95,8 @@ resource "proxmox_virtual_environment_container" "alpine_lxc_template" {
   }
 
   operating_system {
-    template_file_id = proxmox_virtual_environment_download_file.latest_alpine.id
-    type             = "alpine"
-  }
-}
-
-data "template_file" "adguard_primary" {
-  template = var.adguard_primary_config_template
-  vars = {
-    # kics-scan ignore-line
-    password        = var.adguard_login_bcrypt
-    hostname        = "adguard"
-    cert_pem        = var.https_cert
-    private_key_pem = var.https_private_key
-  }
-}
-
-data "template_file" "adguard_secondary" {
-  template = var.adguard_secondary_config_template
-  vars = {
-    # kics-scan ignore-line
-    password        = var.adguard_login_bcrypt
-    hostname        = "adguard2"
-    cert_pem        = var.https_cert
-    private_key_pem = var.https_private_key
-  }
-}
-
-resource "null_resource" "adguard_template_change_primary" {
-  triggers = {
-    rendered_template_sha = sha256(data.template_file.adguard_primary.rendered)
-  }
-}
-
-resource "null_resource" "adguard_template_change_secondary" {
-  triggers = {
-    rendered_template_sha = sha256(data.template_file.adguard_secondary.rendered)
+    template_file_id = proxmox_virtual_environment_download_file.latest_debian_standard.id
+    type             = "debian"
   }
 }
 
@@ -118,7 +106,7 @@ resource "proxmox_virtual_environment_container" "adguard_primary" {
   tags        = ["adguard", "lxc"]
   vm_id       = 500
   clone {
-    vm_id = proxmox_virtual_environment_container.alpine_lxc_template.vm_id
+    vm_id = proxmox_virtual_environment_container.adguard_lxc_template.vm_id
   }
 
   initialization {
@@ -149,24 +137,26 @@ resource "proxmox_virtual_environment_container" "adguard_primary" {
     private_key = tls_private_key.adguard_ssh_key.private_key_openssh
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "apt-get update",
+      "apt-get install -y ca-certificates curl iproute2 tar",
+      "curl -fsSL -o /tmp/AdGuardHome_linux_amd64.tar.gz https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz",
+      "tar -C /opt -xzf /tmp/AdGuardHome_linux_amd64.tar.gz",
+    ]
+  }
+
   provisioner "file" {
-    content     = data.template_file.adguard_primary.rendered
-    destination = "/tmp/AdGuardHome.yaml"
+    content     = local.adguard_bootstrap_primary_config
+    destination = "/opt/AdGuardHome/AdGuardHome.yaml"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "apk update",
-      "apk upgrade",
-      "apk add adguardhome --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing",
-      "rc-update add adguardhome default",
-      "mv /tmp/AdGuardHome.yaml /var/lib/adguardhome/AdGuardHome.yaml",
-      "service adguardhome start",
+      "cd /opt/AdGuardHome",
+      "./AdGuardHome -s install",
+      "systemctl enable --now AdGuardHome",
     ]
-  }
-
-  lifecycle {
-    replace_triggered_by = [null_resource.adguard_template_change_primary]
   }
 }
 
@@ -195,7 +185,7 @@ resource "proxmox_virtual_environment_container" "adguard_secondary" {
   tags        = ["adguard", "lxc"]
   vm_id       = 501
   clone {
-    vm_id = proxmox_virtual_environment_container.alpine_lxc_template.vm_id
+    vm_id = proxmox_virtual_environment_container.adguard_lxc_template.vm_id
   }
 
   depends_on = [
@@ -231,23 +221,73 @@ resource "proxmox_virtual_environment_container" "adguard_secondary" {
     private_key = tls_private_key.adguard_ssh_key.private_key_openssh
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "apt-get update",
+      "apt-get install -y ca-certificates curl tar",
+      "curl -fsSL -o /tmp/AdGuardHome_linux_amd64.tar.gz https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz",
+      "tar -C /opt -xzf /tmp/AdGuardHome_linux_amd64.tar.gz",
+    ]
+  }
+
   provisioner "file" {
-    content     = data.template_file.adguard_secondary.rendered
-    destination = "/tmp/AdGuardHome.yaml"
+    content     = local.adguard_bootstrap_secondary_config
+    destination = "/opt/AdGuardHome/AdGuardHome.yaml"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "apk update",
-      "apk upgrade",
-      "apk add adguardhome --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing",
-      "rc-update add adguardhome default",
-      "mv /tmp/AdGuardHome.yaml /var/lib/adguardhome/AdGuardHome.yaml",
-      "service adguardhome start",
+      "cd /opt/AdGuardHome",
+      "./AdGuardHome -s install",
+      "systemctl enable --now AdGuardHome",
+    ]
+  }
+}
+
+resource "null_resource" "adguard_update_primary" {
+  triggers = {
+    version = var.adguardhome_version
+  }
+
+  connection {
+    type = "ssh"
+    user = "root"
+    host = "192.168.178.200"
+    # kics-scan ignore-line
+    private_key = tls_private_key.adguard_ssh_key.private_key_openssh
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "curl -fsSL -o /tmp/AdGuardHome_linux_amd64.tar.gz https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz",
+      "tar -C /opt -xzf /tmp/AdGuardHome_linux_amd64.tar.gz",
+      "systemctl restart AdGuardHome",
     ]
   }
 
-  lifecycle {
-    replace_triggered_by = [null_resource.adguard_template_change_secondary]
+  depends_on = [proxmox_virtual_environment_container.adguard_primary]
+}
+
+resource "null_resource" "adguard_update_secondary" {
+  triggers = {
+    version = var.adguardhome_version
   }
+
+  connection {
+    type = "ssh"
+    user = "root"
+    host = "192.168.178.201"
+    # kics-scan ignore-line
+    private_key = tls_private_key.adguard_ssh_key.private_key_openssh
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "curl -fsSL -o /tmp/AdGuardHome_linux_amd64.tar.gz https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz",
+      "tar -C /opt -xzf /tmp/AdGuardHome_linux_amd64.tar.gz",
+      "systemctl restart AdGuardHome",
+    ]
+  }
+
+  depends_on = [proxmox_virtual_environment_container.adguard_secondary]
 }

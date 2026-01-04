@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: homelab[\\/]+terraform\.tfvars(\.enc)?$
+    age: age1l8jkrgays4frv50rf9gm3pvl8vfkj3hktp0tp0vgj6832snc29vswqma2s
