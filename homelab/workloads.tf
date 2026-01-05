@@ -74,8 +74,8 @@ module "proxmox_containers" {
   adguard_primary_server_name   = var.adguard_primary_server_name
   adguard_secondary_server_name = var.adguard_secondary_server_name
   # kics-scan ignore-line
-  https_private_key = acme_certificate.thedodo.private_key_pem
-  https_cert        = acme_certificate.thedodo.certificate_pem
+  https_private_key   = acme_certificate.thedodo.private_key_pem
+  https_cert          = acme_certificate.thedodo.certificate_pem
   adguardhome_version = var.adguardhome_version
 }
 

@@ -4,35 +4,38 @@ locals {
     blocked_response_ttl       = 10
     blocking_mode              = "default"
     bootstrap_dns              = ["9.9.9.10", "149.112.112.10", "2620:fe::10", "2620:fe::fe:10"]
-    cache_optimistic           = false
-    cache_size                 = 4194304
+    cache_optimistic           = true
+    cache_size                 = 16777216
     cache_ttl_max              = 0
-    cache_ttl_min              = 0
-    dnssec_enabled             = false
+    cache_ttl_min              = 60
+    dnssec_enabled             = true
     protection_enabled         = true
-    rate_limit                 = 20
+    rate_limit                 = 50
     rate_limit_subnet_len_ipv4 = 24
     rate_limit_subnet_len_ipv6 = 56
-    upstream_dns               = ["https://dns10.quad9.net/dns-query"]
+    resolve_clients            = true
+    upstream_dns               = ["https://unfiltered.adguard-dns.com/dns-query", "tls://unfiltered.adguard-dns.com", "https://dns10.quad9.net/dns-query"]
     upstream_mode              = "load_balance"
-    upstream_timeout           = 10
+    upstream_timeout           = 5
     use_private_ptr_resolvers  = false
   }
 
+  adguard_blocked_services = ["betano", "betfair", "betway", "blaze", "deepseek", "temu", "xiaohongshu"]
+
   adguard_filtering = {
     enabled         = true
-    update_interval = 24
+    update_interval = 12
   }
 
   adguard_querylog = {
     anonymize_client_ip = false
     enabled             = true
-    interval            = 168
+    interval            = 168 # 7 days
   }
 
   adguard_stats = {
     enabled  = true
-    interval = 720
+    interval = 720 # 30 days
   }
 
   adguard_tls_base = {
@@ -90,6 +93,7 @@ resource "adguard_config" "primary" {
   provider = adguard.primary
 
   dns              = local.adguard_dns
+  blocked_services = local.adguard_blocked_services
   filtering        = local.adguard_filtering
   parental_control = false
   querylog         = local.adguard_querylog
@@ -102,6 +106,7 @@ resource "adguard_config" "secondary" {
   provider = adguard.secondary
 
   dns              = local.adguard_dns
+  blocked_services = local.adguard_blocked_services
   filtering        = local.adguard_filtering
   parental_control = false
   querylog         = local.adguard_querylog

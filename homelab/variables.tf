@@ -43,10 +43,10 @@ variable "acme_email_address" {
   type        = string
 }
 
-variable "portainer_api_key" {
-  description = "API Key for Portainer instance"
-  type        = string
-}
+# variable "portainer_api_key" {
+#   description = "API Key for Portainer instance"
+#   type        = string
+# }
 
 variable "adguard_login_bcrypt" {
   description = "Bcrypt hash for AdGuard Home admin password (bootstrap config)"
