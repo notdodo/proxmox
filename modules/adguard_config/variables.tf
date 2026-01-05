@@ -1,11 +1,24 @@
-variable "adguard_primary_server_name" {
-  description = "TLS server name for the primary AdGuard Home instance"
+variable "adguard_server_name" {
+  description = "TLS server name for the AdGuard Home instance"
   type        = string
 }
 
-variable "adguard_secondary_server_name" {
-  description = "TLS server name for the secondary AdGuard Home instance"
-  type        = string
+variable "blocked_services" {
+  description = "Blocked services to enable in AdGuard Home"
+  type        = set(string)
+}
+
+variable "filter_lists" {
+  description = "Filter lists to configure in AdGuard Home"
+  type = map(object({
+    enabled = bool
+    url     = string
+  }))
+}
+
+variable "user_rules" {
+  description = "Custom user rules to configure in AdGuard Home"
+  type        = list(string)
 }
 
 variable "certificate_pem" {

@@ -1,3 +1,8 @@
+locals {
+  acme_directory = "https://acme-v02.api.letsencrypt.org/directory"
+  acme_tos_url   = "https://letsencrypt.org/documents/LE-SA-v1.5-February-24-2025.pdf"
+}
+
 resource "acme_registration" "registration" {
   email_address = var.acme_email_address
 }

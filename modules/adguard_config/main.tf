@@ -20,8 +20,6 @@ locals {
     use_private_ptr_resolvers  = false
   }
 
-  adguard_blocked_services = ["betano", "betfair", "betway", "blaze", "deepseek", "temu", "xiaohongshu"]
-
   adguard_filtering = {
     enabled         = true
     update_interval = 12
@@ -49,104 +47,31 @@ locals {
     private_key        = base64encode(var.private_key_pem)
   }
 
-  adguard_filters = {
-    "AdGuard DNS filter" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt"
-    }
-    "AdAway Default Blocklist" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt"
-    }
-    "Dan Pollock's List" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_4.txt"
-    }
-    "HaGeZi's Ultimate Blocklist" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_49.txt"
-    }
-    "AdGuard DNS Popup Hosts filter" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_59.txt"
-    }
-    "uBlock0 filters - Badware risks" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt"
-    }
-    "Malicious URL Blocklist (URLHaus)" = {
-      enabled = true
-      url     = "https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt"
-    }
-  }
-
-  adguard_user_rules = [
-    "@@||o4505093097586688.ingest.us.sentry.io^$important",
-    "# Disable iCloud Private Relay",
-    "@@||mask.icloud.com^$important",
-    "@@||mask-h2.icloud.com^$important",
-    "@@||metrics.icloud.com^$important",
-  ]
 }
 
-resource "adguard_config" "primary" {
-  provider = adguard.primary
-
+resource "adguard_config" "this" {
   dns              = local.adguard_dns
-  blocked_services = local.adguard_blocked_services
+  blocked_services = var.blocked_services
   filtering        = local.adguard_filtering
   parental_control = false
   querylog         = local.adguard_querylog
   safebrowsing     = false
   stats            = local.adguard_stats
-  tls              = merge(local.adguard_tls_base, { server_name = var.adguard_primary_server_name })
+  tls              = merge(local.adguard_tls_base, { server_name = var.adguard_server_name })
 }
 
-resource "adguard_config" "secondary" {
-  provider = adguard.secondary
-
-  dns              = local.adguard_dns
-  blocked_services = local.adguard_blocked_services
-  filtering        = local.adguard_filtering
-  parental_control = false
-  querylog         = local.adguard_querylog
-  safebrowsing     = false
-  stats            = local.adguard_stats
-  tls              = merge(local.adguard_tls_base, { server_name = var.adguard_secondary_server_name })
-}
-
-resource "adguard_list_filter" "primary" {
-  provider = adguard.primary
-  for_each = local.adguard_filters
+resource "adguard_list_filter" "this" {
+  for_each = var.filter_lists
 
   name    = each.key
   url     = each.value.url
   enabled = each.value.enabled
 
-  depends_on = [adguard_config.primary]
+  depends_on = [adguard_config.this]
 }
 
-resource "adguard_list_filter" "secondary" {
-  provider = adguard.secondary
-  for_each = local.adguard_filters
+resource "adguard_user_rules" "this" {
+  rules = var.user_rules
 
-  name    = each.key
-  url     = each.value.url
-  enabled = each.value.enabled
-
-  depends_on = [adguard_config.secondary]
-}
-
-resource "adguard_user_rules" "primary" {
-  provider = adguard.primary
-  rules    = local.adguard_user_rules
-
-  depends_on = [adguard_config.primary]
-}
-
-resource "adguard_user_rules" "secondary" {
-  provider = adguard.secondary
-  rules    = local.adguard_user_rules
-
-  depends_on = [adguard_config.secondary]
+  depends_on = [adguard_config.this]
 }

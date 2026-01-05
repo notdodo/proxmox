@@ -4,13 +4,13 @@ resource "tls_private_key" "root_key" {
 
 module "proxmox_network" {
   source                = "../modules/proxmox_network"
-  proxmox_pve_node_name = var.proxmox_pve_node_name
-  proxmox_pve_node_ip   = var.proxmox_pve_node_ip
+  proxmox_pve_node_name = local.proxmox_pve_node_name
+  proxmox_pve_node_ip   = local.proxmox_pve_node_ip
 }
 
 module "proxmox_apt" {
   source                = "../modules/proxmox_apt"
-  proxmox_pve_node_name = var.proxmox_pve_node_name
+  proxmox_pve_node_name = local.proxmox_pve_node_name
 }
 
 module "proxmox_pools" {

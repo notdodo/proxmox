@@ -1,4 +1,32 @@
 locals {
+  proxmox_pve_node_name = "mainprox"
+  proxmox_pve_node_ip   = "192.168.178.15"
+  adguardhome_version   = "v0.107.71"
+
+  portainer_nodes = {
+    portainer-node-1 = {
+      lan_ip          = "192.168.178.100/24"
+      lan_gateway     = "192.168.178.1"
+      cluster_ip      = "10.0.100.1/24"
+      cluster_gateway = "10.0.100.1"
+      bootstrap       = true
+    }
+    portainer-node-2 = {
+      lan_ip          = "192.168.178.101/24"
+      lan_gateway     = "192.168.178.1"
+      cluster_ip      = "10.0.100.2/24"
+      cluster_gateway = "10.0.100.1"
+      bootstrap       = false
+    }
+    portainer-node-3 = {
+      lan_ip          = "192.168.178.102/24"
+      lan_gateway     = "192.168.178.1"
+      cluster_ip      = "10.0.100.3/24"
+      cluster_gateway = "10.0.100.1"
+      bootstrap       = false
+    }
+  }
+
   portainer_config = {
     pool_id            = module.proxmox_pools.portainer_pool.id
     network            = module.proxmox_network.portainer_network.name
@@ -59,7 +87,7 @@ locals {
 
 module "proxmox_vms" {
   source                = "../modules/proxmox_vms"
-  proxmox_pve_node_name = var.proxmox_pve_node_name
+  proxmox_pve_node_name = local.proxmox_pve_node_name
   default_network       = module.proxmox_network.default_network.name
   portainer             = local.portainer_config
   vm_definitions        = local.vm_definitions
@@ -67,16 +95,16 @@ module "proxmox_vms" {
 
 module "proxmox_containers" {
   source                        = "../modules/proxmox_containers"
-  proxmox_pve_node_name         = var.proxmox_pve_node_name
+  proxmox_pve_node_name         = local.proxmox_pve_node_name
   default_network               = module.proxmox_network.default_network.name
-  adguard_admin_username        = var.adguard_username
+  adguard_admin_username        = local.adguard_admin_username
   adguard_login_bcrypt          = var.adguard_login_bcrypt
-  adguard_primary_server_name   = var.adguard_primary_server_name
-  adguard_secondary_server_name = var.adguard_secondary_server_name
+  adguard_primary_server_name   = local.adguard_instances.primary.server_name
+  adguard_secondary_server_name = local.adguard_instances.secondary.server_name
   # kics-scan ignore-line
   https_private_key   = acme_certificate.thedodo.private_key_pem
   https_cert          = acme_certificate.thedodo.certificate_pem
-  adguardhome_version = var.adguardhome_version
+  adguardhome_version = local.adguardhome_version
 }
 
 # module "portainer" {

@@ -1,7 +1,13 @@
+locals {
+  automation_user         = "root@pam"
+  proxmox_pve_node_domain = "proxmox.thedodo.xyz"
+  proxmox_pve_node_port   = "8006"
+}
+
 provider "proxmox" {
-  endpoint = "https://${var.proxmox_pve_node_domain}:${var.proxmox_pve_node_port}/"
+  endpoint = "https://${local.proxmox_pve_node_domain}:${local.proxmox_pve_node_port}/"
   insecure = false
-  username = strcontains(var.automation_user, "@p") ? var.automation_user : "${var.automation_user}@pve"
+  username = strcontains(local.automation_user, "@p") ? local.automation_user : "${local.automation_user}@pve"
   password = var.automation_password
 
   ssh {
