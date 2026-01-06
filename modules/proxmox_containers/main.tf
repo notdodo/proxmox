@@ -74,7 +74,7 @@ resource "tls_private_key" "adguard_ssh_key" {
 resource "proxmox_virtual_environment_container" "adguard_lxc_template" {
   description = "Managed by ~Pulumi~ Terraform; Debian 13 standard LXC template (SSH enabled)"
   node_name   = var.proxmox_pve_node_name
-  tags        = ["lxc", "template"]
+  tags        = ["lxc", "debian"]
   vm_id       = 8000
   template    = true
 
@@ -180,7 +180,7 @@ resource "null_resource" "wait_for_adguard_primary" {
 }
 
 resource "proxmox_virtual_environment_container" "adguard_secondary" {
-  description = "AdGuardHome Secondary/Test"
+  description = "AdGuardHome Secondary"
   node_name   = var.proxmox_pve_node_name
   tags        = ["adguard", "lxc"]
   vm_id       = 501
