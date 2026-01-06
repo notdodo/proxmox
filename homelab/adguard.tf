@@ -54,6 +54,7 @@ locals {
     "@@||mask.icloud.com^$important",
     "@@||mask-h2.icloud.com^$important",
     "@@||metrics.icloud.com^$important",
+    "||temu.com^$important",
   ]
 }
 
