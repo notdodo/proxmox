@@ -55,7 +55,7 @@ resource "adguard_config" "this" {
   filtering        = local.adguard_filtering
   parental_control = false
   querylog         = local.adguard_querylog
-  safebrowsing     = false
+  safebrowsing     = true
   stats            = local.adguard_stats
   tls              = merge(local.adguard_tls_base, { server_name = var.adguard_server_name })
 }
