@@ -81,11 +81,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
   dynamic "disk" {
     for_each = (try(each.value.mount_virtio_iso, true) && local.vm_virtio_iso_key[each.key] != null && contains(keys(proxmox_virtual_environment_download_file.vm_virtio_iso), local.vm_virtio_iso_key[each.key])) ? [1] : []
     content {
-      datastore_id = lookup(each.value.virtio_iso, "datastore_id", "local")
-      interface    = coalesce(local.vm_virtio_iso_interface[each.key], "ide3")
-      file_id      = proxmox_virtual_environment_download_file.vm_virtio_iso[local.vm_virtio_iso_key[each.key]].id
-      file_format  = "raw"
-      size         = 1
+      interface = coalesce(local.vm_virtio_iso_interface[each.key], "ide3")
+      file_id   = proxmox_virtual_environment_download_file.vm_virtio_iso[local.vm_virtio_iso_key[each.key]].id
     }
   }
 
@@ -164,11 +161,8 @@ resource "proxmox_virtual_environment_vm" "vm_ignore_changes" {
   dynamic "disk" {
     for_each = (try(each.value.mount_virtio_iso, true) && local.vm_virtio_iso_key[each.key] != null && contains(keys(proxmox_virtual_environment_download_file.vm_virtio_iso), local.vm_virtio_iso_key[each.key])) ? [1] : []
     content {
-      datastore_id = lookup(each.value.virtio_iso, "datastore_id", "local")
-      interface    = coalesce(local.vm_virtio_iso_interface[each.key], "ide3")
-      file_id      = proxmox_virtual_environment_download_file.vm_virtio_iso[local.vm_virtio_iso_key[each.key]].id
-      file_format  = "raw"
-      size         = 1
+      interface = coalesce(local.vm_virtio_iso_interface[each.key], "ide3")
+      file_id   = proxmox_virtual_environment_download_file.vm_virtio_iso[local.vm_virtio_iso_key[each.key]].id
     }
   }
 

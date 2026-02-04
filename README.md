@@ -1,32 +1,48 @@
 # ProxmoxVE Configuration
 
-Terraform configuration for the homelab ProxmoxVE cluster. Live state sits under `homelab/`, reusable modules stay in `modules/`, and supporting templates live in `files/templates/`.
+Terraform configuration for the homelab ProxmoxVE cluster. Environment state is in `homelab/`, reusable modules live in `modules/`, and templates are in `files/templates/`.
 
 ## Layout
-- `homelab/` – environment config, backend settings, and tfvars (encrypted + example).
+- `homelab/` – Proxmox infra + ACME certs (S3 backend in `homelab/versions.tf`).
+- `adguard/` – AdGuard Home configuration (S3 backend in `adguard/versions.tf`).
 - `modules/` – reusable Proxmox/infra modules.
 - `files/templates/` – cloud-init and service config templates used by modules.
-- `docs/` – extended usage notes and operational steps.
-- `homelab/locals.tf` – environment-only constants such as ACME endpoints and `portainer_nodes` map.
+
+## Secrets
+- Decrypted secrets live in `homelab/terraform.tfvars` and `adguard/terraform.tfvars`.
+- Encrypted copies are `homelab/terraform.tfvars.enc` and `adguard/terraform.tfvars.enc`.
+- Update encrypted files with SOPS after editing plaintext:
+  ```powershell
+  sops --encrypt .\homelab\terraform.tfvars > .\homelab\terraform.tfvars.enc
+  sops --encrypt .\adguard\terraform.tfvars > .\adguard\terraform.tfvars.enc
+  ```
 
 ## Quickstart
-1. Export your SOPS key (example for 1Password):\
+1. Export your SOPS key (example for 1Password):
    ```powershell
    $env:SOPS_AGE_KEY=$(op read "op://Private/ProxmoxVE - Main/SOPS AGE/secret-key")
    ```
-2. Decrypt secrets:\
+2. Decrypt secrets:
    ```powershell
    sops --decrypt .\homelab\terraform.tfvars.enc > .\homelab\terraform.tfvars
+   sops --decrypt .\adguard\terraform.tfvars.enc > .\adguard\terraform.tfvars
    ```
-3. Initialise and validate:\
+3. Apply everything in order:
    ```powershell
-   task install
-   task validate
-   ```
-4. Plan/apply from `homelab`:\
-   ```powershell
-   terraform -chdir=homelab plan
-   terraform -chdir=homelab apply
+   task up
    ```
 
-See `docs/README.md` for more detailed workflows.
+## AdGuard Notes
+- AdGuard bootstrap config (admin + TLS) is rendered from `modules/proxmox_containers/templates/adguard-bootstrap.yaml.tftpl`.
+- AdGuard configuration is applied from `adguard/`, which reads ACME cert outputs from `homelab` via `terraform_remote_state`.
+- Run the AdGuard apply only when AdGuard is reachable.
+
+## Notes on Templates
+- Portainer cloud-init lives in `files/templates/`.
+- Portainer node definitions live in `homelab/workloads.tf` (`local.portainer_nodes`).
+
+## QA Tooling
+- `task format` / `task format-check` – run `terraform fmt -recursive`.
+- `task lint` – `tflint` across the repo.
+- `task checkov`, `task kics`, `task trivy` – containerized misconfig scanners.
+- `task check` – aggregated validation + formatting + security scans.

@@ -16,6 +16,14 @@ tasks:
     cmds:
       - terraform -chdir="{{.TF_DIR}}" init
 
+  up:
+    desc: Apply homelab then AdGuard
+    cmds:
+      - terraform -chdir="{{.ROOT_DIR}}/homelab" init
+      - terraform -chdir="{{.ROOT_DIR}}/homelab" apply
+      - terraform -chdir="{{.ROOT_DIR}}/adguard" init
+      - terraform -chdir="{{.ROOT_DIR}}/adguard" apply
+
   validate:
     desc: Terraform validate (homelab)
     cmds:

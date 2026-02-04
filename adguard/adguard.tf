@@ -1,16 +1,19 @@
 locals {
+  remote_state_bucket = "notdodo-terraform"
+  remote_state_key    = "proxmox"
+  remote_state_region = "eu-west-1"
+
   adguard_admin_username = "notdodo"
   adguard_scheme         = "https"
   adguard_tls_insecure   = true
-  enable_adguard_config  = true
 
   adguard_instances = {
     primary = {
-      host        = "192.168.178.200"
+      host        = "192.168.178.200:443"
       server_name = "adguard.thedodo.xyz"
     }
     secondary = {
-      host        = "192.168.178.201"
+      host        = "192.168.178.201:443"
       server_name = "adguard2.thedodo.xyz"
     }
   }
@@ -54,46 +57,48 @@ locals {
     "@@||mask.icloud.com^$important",
     "@@||mask-h2.icloud.com^$important",
     "@@||metrics.icloud.com^$important",
-    "||temu.com^$important",
   ]
+}
+
+data "terraform_remote_state" "homelab" {
+  backend = "s3"
+  config = {
+    bucket = local.remote_state_bucket
+    key    = local.remote_state_key
+    region = local.remote_state_region
+  }
 }
 
 module "adguard_config_primary" {
   source = "../modules/adguard_config"
-  count  = local.enable_adguard_config ? 1 : 0
 
   adguard_server_name = local.adguard_instances.primary.server_name
   blocked_services    = local.adguard_blocked_services
   filter_lists        = local.adguard_filter_lists
   user_rules          = local.adguard_user_rules
 
-  certificate_pem = acme_certificate.thedodo.certificate_pem
-  private_key_pem = acme_certificate.thedodo.private_key_pem
+  certificate_pem = data.terraform_remote_state.homelab.outputs.acme_certificate_pem
+  private_key_pem = data.terraform_remote_state.homelab.outputs.acme_private_key_pem
 
   providers = {
     adguard = adguard.primary
   }
-
-  depends_on = [module.proxmox_containers]
 }
 
 module "adguard_config_secondary" {
   source = "../modules/adguard_config"
-  count  = local.enable_adguard_config ? 1 : 0
 
   adguard_server_name = local.adguard_instances.secondary.server_name
   blocked_services    = local.adguard_blocked_services
   filter_lists        = local.adguard_filter_lists
   user_rules          = local.adguard_user_rules
 
-  certificate_pem = acme_certificate.thedodo.certificate_pem
-  private_key_pem = acme_certificate.thedodo.private_key_pem
+  certificate_pem = data.terraform_remote_state.homelab.outputs.acme_certificate_pem
+  private_key_pem = data.terraform_remote_state.homelab.outputs.acme_private_key_pem
 
   providers = {
     adguard = adguard.secondary
   }
-
-  depends_on = [module.proxmox_containers]
 }
 
 provider "adguard" {
@@ -103,6 +108,7 @@ provider "adguard" {
   username = local.adguard_admin_username
   password = var.adguard_password
   insecure = local.adguard_tls_insecure
+  timeout  = 20
 }
 
 provider "adguard" {
@@ -112,4 +118,5 @@ provider "adguard" {
   username = local.adguard_admin_username
   password = var.adguard_password
   insecure = local.adguard_tls_insecure
+  timeout  = 20
 }

@@ -19,7 +19,7 @@ resource "proxmox_virtual_environment_network_linux_bridge" "vmbr0" {
 
   ports = [
     # Network (or VLAN) interfaces to attach to the bridge, specified by their interface name
-    "enp44s0"
+    "nic0"
   ]
 }
 

@@ -1,6 +1,6 @@
 locals {
   acme_directory = "https://acme-v02.api.letsencrypt.org/directory"
-  acme_tos_url   = "https://letsencrypt.org/documents/LE-SA-v1.5-February-24-2025.pdf"
+  acme_tos_url   = "https://letsencrypt.org/documents/LE-SA-v1.6-August-18-2025.pdf"
 }
 
 resource "acme_registration" "registration" {
@@ -8,8 +8,15 @@ resource "acme_registration" "registration" {
 }
 
 resource "acme_certificate" "thedodo" {
-  account_key_pem = acme_registration.registration.account_key_pem
-  common_name     = "*.thedodo.xyz"
+  account_key_pem              = acme_registration.registration.account_key_pem
+  common_name                  = "*.thedodo.xyz"
+  pre_check_delay              = 30
+  disable_complete_propagation = true
+  recursive_nameservers = [
+    "1.1.1.1:53",
+    "1.0.0.1:53",
+    "8.8.8.8:53",
+  ]
 
   dns_challenge {
     provider = "cloudflare"

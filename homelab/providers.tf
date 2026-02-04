@@ -6,7 +6,7 @@ locals {
 
 provider "proxmox" {
   endpoint = "https://${local.proxmox_pve_node_domain}:${local.proxmox_pve_node_port}/"
-  insecure = false
+  insecure = true
   username = strcontains(local.automation_user, "@p") ? local.automation_user : "${local.automation_user}@pve"
   password = var.automation_password
 

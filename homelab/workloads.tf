@@ -1,7 +1,10 @@
 locals {
-  proxmox_pve_node_name = "mainprox"
-  proxmox_pve_node_ip   = "192.168.178.15"
-  adguardhome_version   = "v0.107.71"
+  proxmox_pve_node_name         = "proxmox1"
+  proxmox_pve_node_ip           = "192.168.178.15"
+  adguardhome_version           = "v0.107.71"
+  adguard_admin_username        = "notdodo"
+  adguard_primary_server_name   = "adguard.thedodo.xyz"
+  adguard_secondary_server_name = "adguard2.thedodo.xyz"
 
   portainer_nodes = {
     portainer-node-1 = {
@@ -99,8 +102,8 @@ module "proxmox_containers" {
   default_network               = module.proxmox_network.default_network.name
   adguard_admin_username        = local.adguard_admin_username
   adguard_login_bcrypt          = var.adguard_login_bcrypt
-  adguard_primary_server_name   = local.adguard_instances.primary.server_name
-  adguard_secondary_server_name = local.adguard_instances.secondary.server_name
+  adguard_primary_server_name   = local.adguard_primary_server_name
+  adguard_secondary_server_name = local.adguard_secondary_server_name
   # kics-scan ignore-line
   https_private_key   = acme_certificate.thedodo.private_key_pem
   https_cert          = acme_certificate.thedodo.certificate_pem

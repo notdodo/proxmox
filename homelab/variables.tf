@@ -28,9 +28,3 @@ variable "adguard_login_bcrypt" {
   type        = string
   sensitive   = true
 }
-
-variable "adguard_password" {
-  description = "AdGuard Home password for API access"
-  type        = string
-  sensitive   = true
-}

@@ -58,7 +58,6 @@ resource "proxmox_virtual_environment_role" "operations" {
     "VM.Config.Options",
     "VM.Console",
     "VM.Migrate",
-    "VM.Monitor",
     "VM.PowerMgmt",
     "VM.Snapshot",
     "VM.Snapshot.Rollback",

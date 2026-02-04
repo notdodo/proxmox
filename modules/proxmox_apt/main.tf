@@ -33,7 +33,7 @@ resource "proxmox_virtual_environment_apt_repository" "enterprise_source_config"
 }
 
 resource "proxmox_virtual_environment_apt_standard_repository" "ceph_quincy_nosubscription_source" {
-  handle = "ceph-quincy-no-subscription"
+  handle = "no-subscription"
   node   = var.proxmox_pve_node_name
 }
 
@@ -45,7 +45,7 @@ resource "proxmox_virtual_environment_apt_repository" "ceph_quincy_nosubscriptio
 }
 
 resource "proxmox_virtual_environment_apt_standard_repository" "ceph_quincy_enterprise_source" {
-  handle = "ceph-quincy-enterprise"
+  handle = "enterprise"
   node   = var.proxmox_pve_node_name
 }
 
