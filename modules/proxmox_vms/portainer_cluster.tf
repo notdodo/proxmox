@@ -8,7 +8,7 @@ resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_img" {
   datastore_id       = "local"
   node_name          = var.proxmox_pve_node_name
   url                = "https://cloud-images.ubuntu.com/releases/server/25.10/release/ubuntu-25.10-server-cloudimg-amd64.img"
-  checksum           = "22838896b4d48ef2de195cc6b80ba17cf960358890ab9b606de1d044c1136705"
+  checksum           = "3a4f0a9c628e23ac0db996c91ba2609658668601f93836cbd3d32cbd594dac05"
   checksum_algorithm = "sha256"
 }
 

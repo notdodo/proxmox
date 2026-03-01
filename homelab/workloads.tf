@@ -1,7 +1,7 @@
 locals {
   proxmox_pve_node_name         = "proxmox1"
   proxmox_pve_node_ip           = "192.168.178.15"
-  adguardhome_version           = "v0.107.71"
+  adguardhome_version           = "v0.107.72"
   adguard_admin_username        = "notdodo"
   adguard_primary_server_name   = "adguard.thedodo.xyz"
   adguard_secondary_server_name = "adguard2.thedodo.xyz"

@@ -16,6 +16,12 @@ tasks:
     cmds:
       - terraform -chdir="{{.TF_DIR}}" init
 
+  update-tf:
+    desc: Upgrade Terraform providers/modules (homelab and adguard)
+    cmds:
+      - terraform -chdir="{{.ROOT_DIR}}/homelab" init -upgrade
+      - terraform -chdir="{{.ROOT_DIR}}/adguard" init -upgrade
+
   up:
     desc: Apply homelab then AdGuard
     cmds:
