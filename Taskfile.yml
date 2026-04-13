@@ -1,81 +1,40 @@
 version: "3"
 
-vars:
-  ROOT_DIR: "{{.TASKFILE_DIR}}"
-  TF_DIR: "{{.ROOT_DIR}}/homelab"
-  DOCKER_PATH: "{{ .DOCKER_PATH | default (toSlash .TASKFILE_DIR) }}" # use repo dir for docker mounts; allow override
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 tasks:
   default:
-    desc: List tasks
+    desc: Show available commands
     cmds:
-      - task --list
+      - task --list-all
 
   install:
-    desc: Terraform init (homelab)
+    desc: Install Python dependencies
     cmds:
-      - terraform -chdir="{{.TF_DIR}}" init
-
-  update-tf:
-    desc: Upgrade Terraform providers/modules (homelab and adguard)
-    cmds:
-      - terraform -chdir="{{.ROOT_DIR}}/homelab" init -upgrade
-      - terraform -chdir="{{.ROOT_DIR}}/adguard" init -upgrade
-
-  up:
-    desc: Apply homelab then AdGuard
-    cmds:
-      - terraform -chdir="{{.ROOT_DIR}}/homelab" init
-      - terraform -chdir="{{.ROOT_DIR}}/homelab" apply
-      - terraform -chdir="{{.ROOT_DIR}}/adguard" init
-      - terraform -chdir="{{.ROOT_DIR}}/adguard" apply
-
-  validate:
-    desc: Terraform validate (homelab)
-    cmds:
-      - terraform -chdir="{{.TF_DIR}}" validate
+      - uv sync
 
   format:
-    desc: Run terraform fmt -recursive
+    desc: Format repository code
     cmds:
-      - terraform fmt -recursive
+      - uv run ruff format
+      - uv run ruff check --fix
 
   format-check:
-    desc: Check formatting without changing files
+    desc: Check the code format (without modifying)
     cmds:
-      - terraform fmt -recursive --check
+      - uv run ruff format --check
 
   lint:
-    desc: Run tflint across the repo
+    desc: Run lint checks
     cmds:
-      - docker run --rm -v "{{.DOCKER_PATH}}:/data" -t ghcr.io/terraform-linters/tflint --chdir /data --recursive
+      - uv run ruff check
 
-  checkov:
-    desc: Run checkov misconfiguration scan
+  type-check:
+    desc: Run static type checks
     cmds:
-      - docker run --rm -v "{{.DOCKER_PATH}}:/tf" --workdir /tf -t bridgecrew/checkov --directory /tf
-
-  kics:
-    desc: Run kics misconfiguration scan
-    cmds:
-      - docker run --rm -v "{{.DOCKER_PATH}}:/path" -t checkmarx/kics scan -p /path -o "/path/"
-
-  trivy:
-    desc: Run trivy filesystem misconfiguration scan
-    cmds:
-      - docker run -v "{{.DOCKER_PATH}}:/app" aquasec/trivy fs --scanners misconfig /app
-
-  secure:
-    desc: Aggregate security scans (trivy, checkov, kics)
-    deps:
-      - trivy
-      - checkov
-      - kics
+      - uv run mypy .
 
   check:
-    desc: Validate, format, lint, and run security scans
-    deps:
-      - validate
-      - format
-      - lint
-      - secure
+    desc: Run formatting check, lint, and type checks
+    deps: [format-check, lint, type-check]

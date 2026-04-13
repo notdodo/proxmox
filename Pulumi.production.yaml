@@ -1,0 +1,14 @@
+secretsprovider: awskms://alias/proxmox-pulumi?region=eu-west-1
+encryptedkey: AQICAHh1FPHuslLFv4DRhg/ThKavfaV3oXzUbnxwLMQDt8pIfAFg74LWqbHbiSYyeVxiWFfMAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMUCVabc5XdmkwLgZGAgEQgDubw0MIS04gtgtbOKKw7PTyADi6c2xJmm2Uix1HfLL5+RdPZKhKTf9TynV7SIn+GN25dNGFeZQDI2sMow==
+config:
+  proxmox-homelab:proxmox_automation_user: root@pam
+  proxmox-homelab:proxmox_endpoint: https://proxmox.thedodo.xyz:8006
+  proxmox-homelab:proxmox_insecure: "false"
+  proxmox-homelab:proxmox_node_cidr: 192.168.178.15/24
+  proxmox-homelab:proxmox_node_name: proxmox1
+  proxmox-homelab:proxmox_password:
+    secure: v1:lgdNgf67IUznwFHm:wC9JsyjeTby6G1f61M1mk6w4WS6Who7NYB+L3rEZVrjJr4s0
+  proxmox-homelab:cf_api_token:
+    secure: v1:PJSYek0WXdpw2+cq:9gD8keHb0zDe08RqQHKyLZt5yq+xrtBLhkHnK24pPCBmHynjGGd1kIxHPl9GFHMU9wLAma8J5nw=
+  proxmox-homelab:acme_email_address:
+    secure: v1:GXd0PKNGa3ZNwoRe:rbIouFvj99eyw15RMQlDA7pXWG0o0L9qmgkFN+jxzHF8I1ThzOj1ng==
