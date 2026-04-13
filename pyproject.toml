@@ -1,0 +1,63 @@
+[project]
+name = "proxmox-homelab"
+version = "0.1.0"
+description = "Pulumi-based Proxmox homelab infrastructure."
+authors = [{ name = "notdodo " }]
+requires-python = ">=3.11"
+readme = "README.md"
+dependencies = [
+    "bcrypt>=4.3.0",
+    "pulumi>=3.230.0,<4.0.0",
+    "pulumi-command>=1.2.1",
+    "pulumi-proxmoxve>=8.0.0",
+    "pulumi-random>=4.19.2",
+    "pulumi-tls>=5.3.1",
+    "pulumiverse-acme>=0.14.0",
+]
+
+[dependency-groups]
+dev = ["mypy[faster-cache]>=1.20.0", "ruff>=0.15.10"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+output-format = "github"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+unfixable = []
+select = ["ALL"]
+ignore = [
+    "COM812",
+    "D2",
+    "D4",
+    "ERA001",
+    "FBT001",
+    "FBT003",
+    "FIX002",
+    "PLR0913",
+    "TD003",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 160
+
+[tool.mypy]
+strict = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+implicit_reexport = true
+namespace_packages = true
+exclude = "^\\.venv/"

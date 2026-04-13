@@ -1,0 +1,23 @@
+name: Pulumi Preview
+on:
+  pull_request:
+
+jobs:
+  python-ci-pulumi:
+    permissions:
+      contents: read
+    uses: notdodo/github-actions/.github/workflows/python-ci.yml@python-ci-v0
+
+  # pulumi-preview:
+  #   name: Pulumi Preview
+  #   needs: [python-ci-pulumi]
+  #   permissions:
+  #     contents: read
+  #     pull-requests: write
+  #     id-token: write
+  #   uses: notdodo/github-actions/.github/workflows/pulumi-preview.yml@pulumi-v0
+  #   with:
+  #     aws-role: arn:aws:iam::841162699174:role/proxmox-oidc-read
+  #     aws-secrets-mapping: >
+  #       CLOUDFLARE_API_TOKEN, proxmox-gha-cloudflare-read-only
+  #     stack-name: production

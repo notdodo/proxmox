@@ -1,0 +1,24 @@
+name: Pulumi Up
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  python-ci-pulumi:
+    permissions:
+      contents: read
+    uses: notdodo/github-actions/.github/workflows/python-ci.yml@python-ci-v0
+
+  # pulumi-up:
+  #   name: Pulumi Up
+  #   needs: [python-ci-pulumi]
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   uses: notdodo/github-actions/.github/workflows/pulumi-up.yml@pulumi-v0
+  #   with:
+  #     aws-role: arn:aws:iam::841162699174:role/proxmox-oidc-write
+  #     aws-secrets-mapping: >
+  #       CLOUDFLARE_API_TOKEN, proxmox-gha-cloudflare-read-write
+  #     stack-name: production

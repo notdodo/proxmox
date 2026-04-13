@@ -1,0 +1,8 @@
+name: proxmox-homelab
+runtime:
+  name: python
+  options:
+    toolchain: uv
+description: Pulumi Python replacement for the Terraform Proxmox homelab project.
+packages:
+  acme: acme@0.14.0
