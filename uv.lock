@@ -589,13 +589,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bcrypt", specifier = ">=4.3.0" },
+    { name = "bcrypt", specifier = ">=5.0.0" },
     { name = "pulumi", specifier = ">=3.230.0,<4.0.0" },
     { name = "pulumi-command", specifier = ">=1.2.1" },
     { name = "pulumi-proxmoxve", specifier = ">=8.0.0" },
     { name = "pulumi-random", specifier = ">=4.19.2" },
     { name = "pulumi-tls", specifier = ">=5.3.1" },
-    { name = "pulumiverse-acme", specifier = ">=0.14.0" },
+    { name = "pulumiverse-acme", specifier = ">=0.15.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -683,16 +683,16 @@ wheels = [
 
 [[package]]
 name = "pulumiverse-acme"
-version = "0.14.0"
+version = "0.15.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "parver" },
     { name = "pulumi" },
     { name = "semver" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/4f/dee818517eff5f6d4bbd6cb2e8770ac1a8bb9fa20ef98981bfebe912366f/pulumiverse_acme-0.14.0.tar.gz", hash = "sha256:1a338973b591fc5727ac7c55bdd83f08a609a80bbd9cdbb3fe9bb32d0256e3d0", size = 26925, upload-time = "2025-09-24T08:39:15.108Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/13/b2fac24b9d8fc1c4845eaf2ec860b04ee9e91fa0c06cb4eec7dc3c3a7d78/pulumiverse_acme-0.15.2.tar.gz", hash = "sha256:4ec54140dedf32432903bf263c46612a6589a661730ea12417ef31615eae56b6", size = 33433, upload-time = "2026-04-10T08:54:06.484Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6b/70/4c11ac5497f7d98dcddf86efa7c550679a6f65e32d80e9e33806574eb4c7/pulumiverse_acme-0.14.0-py3-none-any.whl", hash = "sha256:9837f96af9f3a223662f744679297361aa8b4d0b7c2124b338bb678b4fa8bbcd", size = 32130, upload-time = "2025-09-24T08:39:14.001Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/65/a564b9d2432a2268c906387dbe464a8bc54b7c0cbaba9801c7a56b20ea5c/pulumiverse_acme-0.15.2-py3-none-any.whl", hash = "sha256:e04a7e1dfff8faa24201a9d69a152f655189eeb83f7f061e1cc4de45fc4fd3be", size = 38723, upload-time = "2026-04-10T08:54:05.455Z" },
 ]
 
 [[package]]
