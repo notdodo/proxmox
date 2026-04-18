@@ -1,0 +1,20 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:${version}
+    container_name: portainer
+    restart: always
+    network_mode: bridge
+    ports:
+      - "${public_port}:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+      - /opt/portainer/certs:/certs:ro
+    command:
+      - --sslcert
+      - /certs/portainer.crt
+      - --sslkey
+      - /certs/portainer.key
+
+volumes:
+  portainer_data:

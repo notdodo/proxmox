@@ -4,37 +4,18 @@ from __future__ import annotations
 
 import pulumi
 from pulumi_proxmoxve._inputs import (
-    ContainerLegacyCloneArgs as ContainerCloneArgs,
+    ContainerLegacyCloneArgs,
+    ContainerLegacyConsoleArgs,
+    ContainerLegacyCpuArgs,
+    ContainerLegacyDiskArgs,
+    ContainerLegacyFeaturesArgs,
+    ContainerLegacyInitializationArgs,
+    ContainerLegacyInitializationIpConfigArgs,
+    ContainerLegacyInitializationIpConfigIpv4Args,
+    ContainerLegacyMemoryArgs,
+    ContainerLegacyNetworkInterfaceArgs,
 )
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyConsoleArgs as ContainerConsoleArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyCpuArgs as ContainerCpuArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyDiskArgs as ContainerDiskArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyFeaturesArgs as ContainerFeaturesArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyInitializationArgs as ContainerInitializationArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyInitializationIpConfigArgs as ContainerIpConfigArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyInitializationIpConfigIpv4Args as ContainerIpv4Args,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyMemoryArgs as ContainerMemoryArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyNetworkInterfaceArgs as ContainerNetworkInterfaceArgs,
-)
-from pulumi_proxmoxve.container_legacy import ContainerLegacy as Container
-from pulumi_proxmoxve.container_legacy import ContainerLegacyArgs as ContainerArgs
+from pulumi_proxmoxve.container_legacy import ContainerLegacy, ContainerLegacyArgs
 
 from .base import ComponentBase
 from .enums import Datastore
@@ -59,7 +40,7 @@ class ProxmoxLxc(ComponentBase):
         cpu_cores: int = 1,
         memory_mb: int = 512,
         disk_size_gb: int = 2,
-        disk_datastore_id: str | Datastore = Datastore.LOCAL_LVM,
+        disk_datastore_id: Datastore = Datastore.LOCAL_LVM,
         start_on_boot: bool = True,
         started: bool = True,
         unprivileged: bool = True,
@@ -71,24 +52,26 @@ class ProxmoxLxc(ComponentBase):
         """Create an LXC container cloned from a template."""
         super().__init__(name, opts=opts)
 
-        container = Container(
+        container = ContainerLegacy(
             f"{name}-container",
-            args=ContainerArgs(
+            args=ContainerLegacyArgs(
                 description=description,
                 node_name=node_name,
                 vm_id=vm_id,
-                clone=ContainerCloneArgs(vm_id=template_vm_id),
-                console=ContainerConsoleArgs(enabled=True, tty_count=2),
-                cpu=ContainerCpuArgs(architecture="amd64", cores=cpu_cores, units=1024),
-                features=ContainerFeaturesArgs(
+                clone=ContainerLegacyCloneArgs(vm_id=template_vm_id),
+                console=ContainerLegacyConsoleArgs(enabled=True, tty_count=2),
+                cpu=ContainerLegacyCpuArgs(
+                    architecture="amd64", cores=cpu_cores, units=1024
+                ),
+                features=ContainerLegacyFeaturesArgs(
                     fuse=False, keyctl=False, mounts=[], nesting=nesting
                 ),
-                memory=ContainerMemoryArgs(dedicated=memory_mb, swap=0),
-                initialization=ContainerInitializationArgs(
+                memory=ContainerLegacyMemoryArgs(dedicated=memory_mb, swap=0),
+                initialization=ContainerLegacyInitializationArgs(
                     hostname=hostname,
                     ip_configs=[
-                        ContainerIpConfigArgs(
-                            ipv4=ContainerIpv4Args(
+                        ContainerLegacyInitializationIpConfigArgs(
+                            ipv4=ContainerLegacyInitializationIpConfigIpv4Args(
                                 address=ip_address,
                                 gateway=gateway,
                             ),
@@ -96,9 +79,9 @@ class ProxmoxLxc(ComponentBase):
                     ],
                 ),
                 network_interfaces=[
-                    ContainerNetworkInterfaceArgs(name=network_bridge),
+                    ContainerLegacyNetworkInterfaceArgs(name=network_bridge),
                 ],
-                disk=ContainerDiskArgs(
+                disk=ContainerLegacyDiskArgs(
                     datastore_id=disk_datastore_id,
                     size=disk_size_gb,
                 ),

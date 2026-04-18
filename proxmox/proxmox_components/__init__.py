@@ -1,33 +1,52 @@
 """Reusable Pulumi components for the Proxmox homelab project."""
 
 from .adguard_config_renderer import (
+    AdGuardAllowRule,
     AdGuardDnsConfig,
     AdGuardFilteringConfig,
     AdGuardHttpConfig,
+    AdGuardHttpDohConfig,
     AdGuardLogConfig,
     AdGuardTlsConfig,
     FilterListConfig,
 )
 from .apt import ProxmoxAptRepositories
 from .base import ComponentBase
-from .containers import AdGuardContainers, AdGuardInstanceConfig, LxcRuntimeConfig
+from .containers import (
+    AdGuardConfig,
+    AdGuardContainers,
+    AdGuardInstanceConfig,
+    LxcRuntimeConfig,
+)
 from .debian_lxc_template import DebianLxcTemplate, DebianLxcTemplateConfig
 from .enums import Datastore
 from .foundation import HomelabFoundation
 from .helpers import format_resource_name
 from .lxc import ProxmoxLxc
-from .network import ProxmoxNetwork, ProxmoxNodeConfig
+from .network import BridgeConfig, ProxmoxNetwork, ProxmoxNodeConfig
+from .portainer import PortainerVm, PortainerVmConfig
 from .users import ProxmoxUsers, UserConfig
-from .vm import GuestOS, IsoAttachment, ProxmoxVm
+from .vm import (
+    CloudInitNetworkConfig,
+    GuestOS,
+    IsoAttachment,
+    ProxmoxCloudInitVm,
+    ProxmoxVm,
+)
 
 __all__ = [
+    "AdGuardAllowRule",
+    "AdGuardConfig",
     "AdGuardContainers",
     "AdGuardDnsConfig",
     "AdGuardFilteringConfig",
     "AdGuardHttpConfig",
+    "AdGuardHttpDohConfig",
     "AdGuardInstanceConfig",
     "AdGuardLogConfig",
     "AdGuardTlsConfig",
+    "BridgeConfig",
+    "CloudInitNetworkConfig",
     "ComponentBase",
     "Datastore",
     "DebianLxcTemplate",
@@ -37,7 +56,10 @@ __all__ = [
     "HomelabFoundation",
     "IsoAttachment",
     "LxcRuntimeConfig",
+    "PortainerVm",
+    "PortainerVmConfig",
     "ProxmoxAptRepositories",
+    "ProxmoxCloudInitVm",
     "ProxmoxLxc",
     "ProxmoxNetwork",
     "ProxmoxNodeConfig",

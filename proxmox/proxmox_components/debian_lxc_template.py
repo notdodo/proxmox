@@ -3,39 +3,27 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pulumi
 import pulumi_random as random
 import pulumi_tls as tls
 from pulumi_proxmoxve._inputs import (
-    ContainerLegacyConsoleArgs as ContainerConsoleArgs,
+    ContainerLegacyConsoleArgs,
+    ContainerLegacyCpuArgs,
+    ContainerLegacyDiskArgs,
+    ContainerLegacyFeaturesArgs,
+    ContainerLegacyInitializationArgs,
+    ContainerLegacyInitializationUserAccountArgs,
+    ContainerLegacyMemoryArgs,
+    ContainerLegacyOperatingSystemArgs,
 )
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyCpuArgs as ContainerCpuArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyDiskArgs as ContainerDiskArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyFeaturesArgs as ContainerFeaturesArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyInitializationArgs as ContainerInitializationArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyInitializationUserAccountArgs as ContainerUserAccountArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyMemoryArgs as ContainerMemoryArgs,
-)
-from pulumi_proxmoxve._inputs import (
-    ContainerLegacyOperatingSystemArgs as ContainerOperatingSystemArgs,
-)
-from pulumi_proxmoxve.container_legacy import ContainerLegacy as Container
-from pulumi_proxmoxve.container_legacy import ContainerLegacyArgs as ContainerArgs
-from pulumi_proxmoxve.download.file import File as DownloadFile
+from pulumi_proxmoxve.container_legacy import ContainerLegacy, ContainerLegacyArgs
 
 from .base import ComponentBase
+
+if TYPE_CHECKING:
+    from .enums import Datastore
 
 
 @dataclass(frozen=True)
@@ -45,9 +33,7 @@ class DebianLxcTemplateConfig:
     vm_id: int
     hostname: str
     description: str
-    image_url: str
-    image_datastore_id: str
-    rootfs_datastore_id: str
+    rootfs_datastore_id: Datastore
     rootfs_size_gb: int
     start_on_boot: bool
     started: bool
@@ -67,21 +53,12 @@ class DebianLxcTemplate(ComponentBase):
         name: str,
         *,
         node_name: str,
+        image_file_id: pulumi.Input[str],
         settings: DebianLxcTemplateConfig,
         opts: pulumi.ResourceOptions | None = None,
     ) -> None:
         """Create the shared Debian LXC template and SSH bootstrap materials."""
         super().__init__(name, opts=opts)
-
-        template_file = DownloadFile(
-            f"{name}-file",
-            content_type="vztmpl",
-            datastore_id=settings.image_datastore_id,
-            node_name=node_name,
-            overwrite_unmanaged=True,
-            url=settings.image_url,
-            opts=pulumi.ResourceOptions(parent=self),
-        )
 
         template_password = random.RandomPassword(
             f"{name}-password",
@@ -100,25 +77,25 @@ class DebianLxcTemplate(ComponentBase):
             opts=pulumi.ResourceOptions(parent=self),
         )
 
-        template = Container(
+        template = ContainerLegacy(
             f"{name}-container",
-            args=ContainerArgs(
+            args=ContainerLegacyArgs(
                 description=settings.description,
                 node_name=node_name,
-                console=ContainerConsoleArgs(enabled=True, tty_count=2),
-                cpu=ContainerCpuArgs(architecture="amd64", cores=1, units=1024),
-                features=ContainerFeaturesArgs(
+                console=ContainerLegacyConsoleArgs(enabled=True, tty_count=2),
+                cpu=ContainerLegacyCpuArgs(architecture="amd64", cores=1, units=1024),
+                features=ContainerLegacyFeaturesArgs(
                     fuse=False, keyctl=False, mounts=[], nesting=settings.nesting
                 ),
-                memory=ContainerMemoryArgs(dedicated=512, swap=0),
+                memory=ContainerLegacyMemoryArgs(dedicated=512, swap=0),
                 start_on_boot=settings.start_on_boot,
                 started=settings.started,
                 tags=settings.tags,
                 vm_id=settings.vm_id,
                 template=True,
-                initialization=ContainerInitializationArgs(
+                initialization=ContainerLegacyInitializationArgs(
                     hostname=settings.hostname,
-                    user_account=ContainerUserAccountArgs(
+                    user_account=ContainerLegacyInitializationUserAccountArgs(
                         keys=[
                             pulumi.Output.from_input(ssh_key.public_key_openssh).apply(
                                 str.strip
@@ -127,13 +104,13 @@ class DebianLxcTemplate(ComponentBase):
                         password=template_password.result,
                     ),
                 ),
-                disk=ContainerDiskArgs(
+                disk=ContainerLegacyDiskArgs(
                     datastore_id=settings.rootfs_datastore_id,
                     size=settings.rootfs_size_gb,
                 ),
                 network_interfaces=[],
-                operating_system=ContainerOperatingSystemArgs(
-                    template_file_id=template_file.id, type="debian"
+                operating_system=ContainerLegacyOperatingSystemArgs(
+                    template_file_id=image_file_id, type="debian"
                 ),
                 timeout_clone=1800,
                 timeout_create=1800,

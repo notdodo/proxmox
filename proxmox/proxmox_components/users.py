@@ -6,9 +6,9 @@ from dataclasses import dataclass
 
 import pulumi
 import pulumi_random as random
-from pulumi_proxmoxve._inputs import UserLegacyAclArgs as UserAclArgs
-from pulumi_proxmoxve.role_legacy import RoleLegacy as Role
-from pulumi_proxmoxve.user_legacy import UserLegacy as User
+from pulumi_proxmoxve._inputs import UserLegacyAclArgs
+from pulumi_proxmoxve.role_legacy import RoleLegacy
+from pulumi_proxmoxve.user_legacy import UserLegacy
 
 from .base import ComponentBase
 
@@ -74,7 +74,7 @@ class ProxmoxUsers(ComponentBase):
         """Create the shared role and the requested users."""
         super().__init__(name, opts=opts)
 
-        Role(
+        RoleLegacy(
             f"{name}-operations-role",
             role_id=OPERATIONS_ROLE_ID,
             privileges=OPERATIONS_PRIVILEGES,
@@ -94,16 +94,16 @@ class ProxmoxUsers(ComponentBase):
                 override_special="!#$%?-_",
                 opts=pulumi.ResourceOptions(parent=self),
             )
-            User(
+            UserLegacy(
                 f"{name}-{user.username}",
-                comment="Managed by Pulumi",
+                comment=f"Managed by Pulumi; Proxmox user {user.username}",
                 user_id=f"{user.username}@pam"
                 if user.pam_enabled
                 else f"{user.username}@pve",
                 groups=[],
                 password=password.result,
                 acls=[
-                    UserAclArgs(
+                    UserLegacyAclArgs(
                         path="/",
                         propagate=True,
                         role_id=user.role_id,

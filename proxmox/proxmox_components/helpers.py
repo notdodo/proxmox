@@ -21,6 +21,11 @@ def pulumi_warning(message: str, resource: Resource | None = None) -> None:
     warn(message, resource)
 
 
+def host_from_cidr(address: str) -> str:
+    """Extract the host IP from a CIDR notation address (e.g. '10.0.0.1/24' → '10.0.0.1')."""
+    return address.split("/", maxsplit=1)[0]
+
+
 def format_resource_name(name: str, resource: Resource | None = None) -> str:
     """Format a string to be used safely as a Pulumi resource name."""
     if VALIDATING_REGEX.match(name):
