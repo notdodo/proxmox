@@ -44,6 +44,7 @@ if TYPE_CHECKING:
         FilterListConfig,
     )
     from .enums import Datastore
+    from .performance import LxcPerformanceConfig
 
 
 @dataclass(frozen=True)
@@ -72,6 +73,7 @@ class LxcRuntimeConfig:
     timeout_create: int
     timeout_delete: int
     timeout_update: int
+    performance: LxcPerformanceConfig
 
 
 @dataclass(frozen=True)
@@ -241,7 +243,10 @@ class AdGuardContainers(ComponentBase):
                     node_name=node_name,
                     console=ContainerLegacyConsoleArgs(enabled=True, tty_count=2),
                     cpu=ContainerLegacyCpuArgs(
-                        architecture="amd64", cores=1, units=1024
+                        architecture="amd64",
+                        cores=1,
+                        limit=lxc_runtime.performance.cpu_limit,
+                        units=lxc_runtime.performance.cpu_units,
                     ),
                     features=ContainerLegacyFeaturesArgs(
                         fuse=False,
@@ -267,10 +272,14 @@ class AdGuardContainers(ComponentBase):
                         ],
                     ),
                     network_interfaces=[
-                        ContainerLegacyNetworkInterfaceArgs(name=default_network_name),
+                        ContainerLegacyNetworkInterfaceArgs(
+                            name=default_network_name,
+                            mtu=lxc_runtime.performance.network_mtu,
+                        ),
                     ],
                     disk=ContainerLegacyDiskArgs(
                         datastore_id=lxc_runtime.rootfs_datastore_id,
+                        replicate=lxc_runtime.performance.rootfs_replicate,
                         size=lxc_runtime.rootfs_size_gb,
                     ),
                     timeout_clone=lxc_runtime.timeout_clone,
@@ -376,7 +385,7 @@ class AdGuardContainers(ComponentBase):
                 f"{name}-{instance_resource_name}-update",
                 connection=conn,
                 triggers=[container_lifecycle, settings.version],
-                create=_update_adguard_command(settings.version),
+                create="true",
                 update=_update_adguard_command(settings.version),
                 opts=pulumi.ResourceOptions(
                     parent=container,

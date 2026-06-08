@@ -1,8 +1,8 @@
-"""Typed inventory for first-class Proxmox resources and workloads."""
+"""Typed production settings for the Proxmox homelab stack."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from ipaddress import IPv4Address
 from typing import TYPE_CHECKING
 
@@ -24,8 +24,10 @@ from proxmox_components import (
     PortainerVmConfig,
     ProxmoxNodeConfig,
     UserConfig,
+    VmPerformanceConfig,
 )
 from proxmox_components.containers import LxcRuntimeConfig
+from proxmox_components.performance import LxcPerformanceConfig
 
 if TYPE_CHECKING:
     import pulumi
@@ -33,45 +35,50 @@ if TYPE_CHECKING:
 ALL_INTERFACES = IPv4Address(0).compressed
 
 
-@dataclass(frozen=True)
+@dataclass
 class AcmeSettings:
     """ACME issuance settings."""
 
-    email_address: pulumi.Input[str]
     cloudflare_api_token: pulumi.Input[str]
+    email_address: pulumi.Input[str]
 
 
-@dataclass(frozen=True)
+@dataclass
 class PoolSpec:
-    """First-class Proxmox pool inventory item."""
+    """First-class Proxmox pool settings."""
 
     resource_name: str
     pool_id: str
     comment: str = "Managed by Pulumi; Resource pool"
 
 
-@dataclass(frozen=True)
+@dataclass
 class DownloadedImageSpec:
-    """First-class downloadable datastore image."""
+    """First-class downloadable datastore image settings."""
 
     resource_name: str
     content_type: str
     datastore_id: Datastore
     file_name: str
     url: str
+    checksum: str | None = None
+    checksum_algorithm: str | None = None
+    overwrite: bool | None = None
     overwrite_unmanaged: bool = True
+    upload_timeout: int | None = None
+    verify: bool | None = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class LxcTemplateSpec:
-    """First-class reusable LXC template inventory item."""
+    """First-class reusable LXC template settings."""
 
     resource_name: str
-    settings: DebianLxcTemplateConfig
     image_name: str
+    settings: DebianLxcTemplateConfig
 
 
-@dataclass(frozen=True)
+@dataclass
 class VmIsoRef:
     """Attachment of a first-class downloaded image to a VM."""
 
@@ -79,9 +86,9 @@ class VmIsoRef:
     interface: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class VmSpec:
-    """First-class generic Proxmox VM inventory item."""
+    """First-class generic Proxmox VM settings."""
 
     resource_name: str
     vm_name: str
@@ -93,46 +100,48 @@ class VmSpec:
     description: str
     tags: list[str]
     pool_name: str | None = None
+    performance: VmPerformanceConfig = field(default_factory=VmPerformanceConfig)
 
 
-@dataclass(frozen=True)
+@dataclass
 class PortainerSpec:
-    """Portainer workload inventory item referencing first-class resources."""
+    """Portainer workload settings referencing first-class resources."""
 
     image_name: str
     pool_name: str
     settings: PortainerVmConfig
 
 
-@dataclass(frozen=True)
+@dataclass
 class AdGuardSpec:
-    """AdGuard workload inventory item referencing first-class resources."""
+    """AdGuard workload settings referencing first-class resources."""
 
     template_name: str
     settings: AdGuardConfig
 
 
-@dataclass(frozen=True)
-class ProductionInventory:
-    """Production stack inventory."""
+@dataclass
+class ProductionSettings:
+    """Complete production stack settings."""
 
-    node: ProxmoxNodeConfig
+    acme: AcmeSettings
+    adguard: AdGuardSpec
     bridges: list[BridgeConfig]
     foundation_users: list[UserConfig]
-    acme: AcmeSettings
-    pools: list[PoolSpec]
     images: list[DownloadedImageSpec]
     lxc_templates: list[LxcTemplateSpec]
-    vms: list[VmSpec]
+    node: ProxmoxNodeConfig
+    pools: list[PoolSpec]
     portainer: PortainerSpec
-    adguard: AdGuardSpec
+    vms: list[VmSpec]
 
 
-def production_inventory(config: pulumi.Config) -> ProductionInventory:
-    """Build the production inventory from Pulumi config and defaults."""
-    return ProductionInventory(
+def build_production_settings(config: pulumi.Config) -> ProductionSettings:
+    """Build the production stack settings from Pulumi config and defaults."""
+    node_name = config.require("proxmox_node_name")
+    return ProductionSettings(
         node=ProxmoxNodeConfig(
-            name=config.require("proxmox_node_name"),
+            name=node_name,
             management_cidr=config.require("proxmox_node_cidr"),
             default_bridge_name="vmbr0",
             default_gateway="192.168.178.1",
@@ -153,7 +162,7 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 address="10.0.100.0/24",
                 uplink_ports=None,
                 comment="Managed by Pulumi; Services network bridge",
-                import_id=f"{config.require('proxmox_node_name')}:vmbr100",
+                import_id=f"{node_name}:vmbr100",
             ),
         ],
         foundation_users=[
@@ -164,8 +173,8 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
             )
         ],
         acme=AcmeSettings(
-            email_address=config.require_secret("acme_email_address"),
             cloudflare_api_token=config.require_secret("cf_api_token"),
+            email_address=config.require_secret("acme_email_address"),
         ),
         pools=[
             PoolSpec(
@@ -181,6 +190,9 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 datastore_id=Datastore.LOCAL,
                 file_name="ubuntu-24.04-server-cloudimg-amd64.qcow2",
                 url="https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
+                checksum="53fdde898feed8b027d94baa9cfe8229867f330a1d9c49dc7d84465ee7f229f7",
+                checksum_algorithm="sha256",
+                upload_timeout=1800,
             ),
             DownloadedImageSpec(
                 resource_name="windows-iso",
@@ -188,6 +200,7 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 datastore_id=Datastore.LOCAL,
                 file_name="win11-enterprise.iso",
                 url="https://software-static.download.prss.microsoft.com/dbazure/888969d5-f34g-4e03-ac9d-1f9786c66749/26100.1742.240906-0331.ge_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso",
+                upload_timeout=7200,
             ),
             DownloadedImageSpec(
                 resource_name="virtio-iso",
@@ -195,6 +208,7 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 datastore_id=Datastore.LOCAL,
                 file_name="virtio-win.iso",
                 url="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso",
+                upload_timeout=3600,
             ),
             DownloadedImageSpec(
                 resource_name="debian-13-lxc-image",
@@ -202,6 +216,9 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 datastore_id=Datastore.LOCAL,
                 file_name="debian-13-standard_13.1-2_amd64.tar.zst",
                 url="http://download.proxmox.com/images/system/debian-13-standard_13.1-2_amd64.tar.zst",
+                checksum="5aec4ab2ac5c16c7c8ecb87bfeeb10213abe96db6b85e2463585cea492fc861d7c390b3f9c95629bf690b95e9dfe1037207fc69c0912429605f208d5cb2621f8",
+                checksum_algorithm="sha512",
+                upload_timeout=1800,
             ),
         ],
         lxc_templates=[
@@ -229,7 +246,7 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 os=GuestOS.WIN11,
                 iso_attachments=[
                     VmIsoRef(image_name="windows-iso", interface="ide2"),
-                    VmIsoRef(image_name="virtio-iso", interface="ide3"),
+                    VmIsoRef(image_name="virtio-iso", interface="ide0"),
                 ],
                 cpu_cores=4,
                 memory_mb=1024 * 6,
@@ -237,6 +254,11 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 description="Managed by Pulumi; Generic Win11 evaluation VM",
                 tags=["win11"],
                 pool_name="workload-pool",
+                performance=VmPerformanceConfig(
+                    cpu_units=256,
+                    disk_cache="writeback",
+                    network_queues=2,
+                ),
             )
         ],
         portainer=PortainerSpec(
@@ -252,6 +274,10 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                 dns_servers=["1.1.1.1", "8.8.8.8"],
                 disk_datastore_id=Datastore.LOCAL_LVM,
                 admin_username="notdodo",
+                admin_password=config.get_secret("portainer_admin_password"),
+                cpu_cores=1,
+                memory_mb=2048,
+                performance=VmPerformanceConfig(cpu_units=512),
                 pool_id=None,
             ),
         ),
@@ -307,26 +333,26 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                         "https://dns10.quad9.net/dns-query",
                     ],
                     upstream_mode="load_balance",
-                    upstream_timeout="5s",
+                    upstream_timeout="2s",
                     use_private_ptr_resolvers=False,
                 ),
                 filtering=AdGuardFilteringConfig(
                     protection_enabled=True,
                     filtering_enabled=True,
                     blocking_mode="default",
-                    filters_update_interval=12,
+                    filters_update_interval=24,
                     parental_enabled=False,
                     safebrowsing_enabled=True,
                 ),
                 query_log=AdGuardLogConfig(
                     enabled=True,
-                    interval="168h",
+                    interval="24h",
                     ignored=[],
                     ignored_enabled=False,
                 ),
                 statistics=AdGuardLogConfig(
                     enabled=True,
-                    interval="720h",
+                    interval="168h",
                     ignored=[],
                     ignored_enabled=False,
                 ),
@@ -390,7 +416,8 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                     AdGuardAllowRule(domain="mask.icloud.com", important=True),
                     AdGuardAllowRule(domain="metrics.icloud.com", important=True),
                     AdGuardAllowRule(
-                        domain="o4505093097586688.ingest.us.sentry.io", important=True
+                        domain="o4505093097586688.ingest.us.sentry.io",
+                        important=True,
                     ),
                     AdGuardAllowRule(domain="teamsystem.musvc2.net", important=True),
                     AdGuardAllowRule(domain="web.facebook.com", important=True),
@@ -408,6 +435,7 @@ def production_inventory(config: pulumi.Config) -> ProductionInventory:
                     timeout_create=1800,
                     timeout_delete=60,
                     timeout_update=1800,
+                    performance=LxcPerformanceConfig(cpu_units=2048),
                 ),
                 instances=[
                     AdGuardInstanceConfig(

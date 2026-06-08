@@ -24,6 +24,7 @@ from .foundation import HomelabFoundation
 from .helpers import format_resource_name
 from .lxc import ProxmoxLxc
 from .network import BridgeConfig, ProxmoxNetwork, ProxmoxNodeConfig
+from .performance import LxcPerformanceConfig, VmPerformanceConfig
 from .portainer import PortainerVm, PortainerVmConfig
 from .users import ProxmoxUsers, UserConfig
 from .vm import (
@@ -55,6 +56,7 @@ __all__ = [
     "GuestOS",
     "HomelabFoundation",
     "IsoAttachment",
+    "LxcPerformanceConfig",
     "LxcRuntimeConfig",
     "PortainerVm",
     "PortainerVmConfig",
@@ -66,5 +68,6 @@ __all__ = [
     "ProxmoxUsers",
     "ProxmoxVm",
     "UserConfig",
+    "VmPerformanceConfig",
     "format_resource_name",
 ]

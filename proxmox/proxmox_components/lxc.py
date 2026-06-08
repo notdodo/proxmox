@@ -19,6 +19,7 @@ from pulumi_proxmoxve.container_legacy import ContainerLegacy, ContainerLegacyAr
 
 from .base import ComponentBase
 from .enums import Datastore
+from .performance import LxcPerformanceConfig
 
 
 class ProxmoxLxc(ComponentBase):
@@ -47,10 +48,12 @@ class ProxmoxLxc(ComponentBase):
         nesting: bool = True,
         tags: list[str] | None = None,
         description: str = "",
+        performance: LxcPerformanceConfig | None = None,
         opts: pulumi.ResourceOptions | None = None,
     ) -> None:
         """Create an LXC container cloned from a template."""
         super().__init__(name, opts=opts)
+        performance = performance or LxcPerformanceConfig()
 
         container = ContainerLegacy(
             f"{name}-container",
@@ -61,7 +64,10 @@ class ProxmoxLxc(ComponentBase):
                 clone=ContainerLegacyCloneArgs(vm_id=template_vm_id),
                 console=ContainerLegacyConsoleArgs(enabled=True, tty_count=2),
                 cpu=ContainerLegacyCpuArgs(
-                    architecture="amd64", cores=cpu_cores, units=1024
+                    architecture="amd64",
+                    cores=cpu_cores,
+                    limit=performance.cpu_limit,
+                    units=performance.cpu_units,
                 ),
                 features=ContainerLegacyFeaturesArgs(
                     fuse=False, keyctl=False, mounts=[], nesting=nesting
@@ -79,10 +85,14 @@ class ProxmoxLxc(ComponentBase):
                     ],
                 ),
                 network_interfaces=[
-                    ContainerLegacyNetworkInterfaceArgs(name=network_bridge),
+                    ContainerLegacyNetworkInterfaceArgs(
+                        name=network_bridge,
+                        mtu=performance.network_mtu,
+                    ),
                 ],
                 disk=ContainerLegacyDiskArgs(
                     datastore_id=disk_datastore_id,
+                    replicate=performance.rootfs_replicate,
                     size=disk_size_gb,
                 ),
                 start_on_boot=start_on_boot,

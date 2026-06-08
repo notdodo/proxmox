@@ -6,6 +6,7 @@ config:
   proxmox-homelab:proxmox_insecure: "false"
   proxmox-homelab:proxmox_node_cidr: 192.168.178.15/24
   proxmox-homelab:proxmox_node_name: proxmox1
+  proxmox-homelab:proxmox_ssh_username: root
   proxmox-homelab:proxmox_password:
     secure: v1:lgdNgf67IUznwFHm:wC9JsyjeTby6G1f61M1mk6w4WS6Who7NYB+L3rEZVrjJr4s0
   proxmox-homelab:cf_api_token:

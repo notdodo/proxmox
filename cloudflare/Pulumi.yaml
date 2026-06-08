@@ -1,5 +1,5 @@
 name: cloudflare
-description: A minimal Python Pulumi program
+description: Cloudflare support stack for the Proxmox homelab.
 runtime:
   name: python
   options:

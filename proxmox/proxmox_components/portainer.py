@@ -11,20 +11,19 @@ from typing import TYPE_CHECKING
 import pulumi
 import pulumi_random as random
 import pulumi_tls as tls
-from pulumi_command.remote import Command, ConnectionArgs
+from pulumi_command.remote import Command, ConnectionArgs, Logging
 
 from .base import ComponentBase
 from .helpers import format_resource_name, host_from_cidr
+from .performance import VmPerformanceConfig
 from .vm import CloudInitNetworkConfig, GuestOS, ProxmoxCloudInitVm
 
 if TYPE_CHECKING:
     from .enums import Datastore
 
-_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "files" / "templates"
-_CLOUD_INIT_TEMPLATE = Template(
-    (_TEMPLATES_DIR / "portainer-cloud-init.yml").read_text()
-)
-_COMPOSE_TEMPLATE = Template((_TEMPLATES_DIR / "portainer-compose.yml").read_text())
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "files" / "templates"
+CLOUD_INIT_TEMPLATE = Template((TEMPLATES_DIR / "portainer-cloud-init.yml").read_text())
+COMPOSE_TEMPLATE = Template((TEMPLATES_DIR / "portainer-compose.yml").read_text())
 
 
 @dataclass(frozen=True)
@@ -41,12 +40,16 @@ class PortainerVmConfig:
     disk_datastore_id: Datastore
     pool_id: pulumi.Input[str] | None = None
     admin_username: str = "admin"
+    admin_password: pulumi.Input[str] | None = None
     ssh_username: str = "ubuntu"
-    cpu_cores: int = 2
-    memory_mb: int = 4096
+    cpu_cores: int = 1
+    memory_mb: int = 2048
     disk_size_gb: int = 32
     public_port: int = 9443
     version: str = "lts"
+    performance: VmPerformanceConfig = field(
+        default_factory=lambda: VmPerformanceConfig(cpu_units=512)
+    )
     tags: list[str] = field(
         default_factory=lambda: ["docker", "portainer", "ubuntu", "vm"]
     )
@@ -66,7 +69,7 @@ def _render_cloud_config(
     ssh_public_key: pulumi.Input[str],
 ) -> pulumi.Output[str]:
     return pulumi.Output.from_input(ssh_public_key).apply(
-        lambda key: _CLOUD_INIT_TEMPLATE.safe_substitute(
+        lambda key: CLOUD_INIT_TEMPLATE.safe_substitute(
             hostname=hostname,
             username=username,
             ssh_public_key=key.strip(),
@@ -75,7 +78,7 @@ def _render_cloud_config(
 
 
 def _render_compose(version: str, public_port: int) -> str:
-    return _COMPOSE_TEMPLATE.safe_substitute(
+    return COMPOSE_TEMPLATE.safe_substitute(
         version=version,
         public_port=public_port,
     )
@@ -91,24 +94,81 @@ def _write_remote_file(path: str) -> str:
     )
 
 
-_DEPLOY_COMMAND = (
+DEPLOY_COMMAND = (
     "set -euo pipefail\n"
-    "sudo docker compose -f /opt/portainer/compose.yaml down -v 2>/dev/null || true\n"
+    "sudo docker compose -f /opt/portainer/compose.yaml down 2>/dev/null || true\n"
     "sudo docker compose -f /opt/portainer/compose.yaml pull\n"
     "sudo docker compose -f /opt/portainer/compose.yaml up -d --remove-orphans"
 )
 
-_INIT_ADMIN_COMMAND = (
+INIT_ADMIN_COMMAND = (
     "set -euo pipefail\n"
-    "elapsed=0\n"
-    "until curl -skf https://127.0.0.1:9443/api/status >/dev/null; do\n"
-    "  sleep 5\n"
-    "  elapsed=$((elapsed + 5))\n"
-    '  [ "$elapsed" -ge 300 ] '
+    "payload=$(mktemp)\n"
+    "trap 'rm -f \"$payload\"' EXIT\n"
+    'cat > "$payload"\n'
+    "json_field() {\n"
+    "  python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "
+    '"$payload" "$1"\n'
+    "}\n"
+    "auth_status() {\n"
+    "  curl -sk -o /dev/null -w '%{http_code}' "
+    "-H 'Content-Type: application/json' -d @\"$payload\" "
+    "https://127.0.0.1:9443/api/auth\n"
+    "}\n"
+    "wait_for_portainer() {\n"
+    "  elapsed=0\n"
+    "  until curl -skf https://127.0.0.1:9443/api/status >/dev/null; do\n"
+    "    sleep 5\n"
+    "    elapsed=$((elapsed + 5))\n"
+    '    [ "$elapsed" -ge 300 ] '
     '&& echo "Portainer did not start within 300s" >&2 && exit 1\n'
-    "done\n"
-    "curl -skf -H 'Content-Type: application/json' -d @- "
-    "https://127.0.0.1:9443/api/users/admin/init"
+    "  done\n"
+    "}\n"
+    "verify_desired_credentials() {\n"
+    '  [ "$(auth_status)" = "200" ]\n'
+    "}\n"
+    "reset_admin_password() {\n"
+    "  password=$(json_field Password)\n"
+    "  data_mount=$(sudo docker inspect portainer "
+    '--format \'{{range .Mounts}}{{if eq .Destination "/data"}}'
+    "{{if .Name}}{{.Name}}{{else}}{{.Source}}{{end}}{{end}}{{end}}' "
+    "2>/dev/null || true)\n"
+    '  if [ -z "$data_mount" ]; then\n'
+    '    echo "Could not find Portainer /data mount for password reset" >&2\n'
+    "    exit 1\n"
+    "  fi\n"
+    "  sudo docker compose -f /opt/portainer/compose.yaml stop portainer\n"
+    '  sudo docker run --rm -v "${data_mount}:/data" '
+    'portainer/helper-reset-password --password "$password" >/dev/null\n'
+    "  sudo docker compose -f /opt/portainer/compose.yaml up -d --remove-orphans\n"
+    "  wait_for_portainer\n"
+    "}\n"
+    "initialize_admin() {\n"
+    "  curl -skf -H 'Content-Type: application/json' -d @\"$payload\" "
+    "https://127.0.0.1:9443/api/users/admin/init >/dev/null\n"
+    "}\n"
+    "\n"
+    "wait_for_portainer\n"
+    "if verify_desired_credentials; then\n"
+    '  echo "Portainer desired admin credentials are valid"\n'
+    "  exit 0\n"
+    "fi\n"
+    "admin_status=$(curl -sk -o /dev/null -w '%{http_code}' "
+    "https://127.0.0.1:9443/api/users/admin/check)\n"
+    'case "$admin_status" in\n'
+    "  204)\n"
+    "    reset_admin_password\n"
+    "    ;;\n"
+    "  404)\n"
+    "    initialize_admin\n"
+    "    ;;\n"
+    '  *) echo "Unexpected Portainer admin check status: $admin_status" >&2; exit 1 ;;\n'
+    "esac\n"
+    "if verify_desired_credentials; then\n"
+    "  exit 0\n"
+    "fi\n"
+    'echo "Portainer admin credentials could not be reconciled; check the configured username" >&2\n'
+    "exit 1"
 )
 
 
@@ -145,17 +205,22 @@ class PortainerVm(ComponentBase):
             algorithm="ED25519",
             opts=child_opts,
         )
-        admin_password = random.RandomPassword(
-            f"{name}-{rn}-admin-password",
-            length=24,
-            special=True,
-            min_lower=1,
-            min_numeric=1,
-            min_special=1,
-            min_upper=1,
-            override_special="!#$%?-_",
-            opts=child_opts,
-        )
+        desired_admin_password: pulumi.Input[str]
+        if settings.admin_password is None:
+            generated_admin_password = random.RandomPassword(
+                f"{name}-{rn}-admin-password",
+                length=24,
+                special=True,
+                min_lower=1,
+                min_numeric=1,
+                min_special=1,
+                min_upper=1,
+                override_special="!#$%?-_",
+                opts=child_opts,
+            )
+            desired_admin_password = generated_admin_password.result
+        else:
+            desired_admin_password = settings.admin_password
 
         vm = ProxmoxCloudInitVm(
             f"{name}-{rn}-vm",
@@ -184,6 +249,7 @@ class PortainerVm(ComponentBase):
             on_boot=True,
             started=True,
             pool_id=settings.pool_id,
+            performance=settings.performance,
             opts=child_opts,
         )
 
@@ -203,7 +269,7 @@ class PortainerVm(ComponentBase):
             lambda parts: f"{parts[0].rstrip()}\n{parts[1].lstrip()}"
         )
         compose_yaml = _render_compose(settings.version, settings.public_port)
-        auth_payload = pulumi.Output.all(admin_password.result).apply(
+        auth_payload = pulumi.Output.all(desired_admin_password).apply(
             lambda vals: json.dumps(
                 asdict(
                     _PortainerAuthPayload(
@@ -249,7 +315,7 @@ class PortainerVm(ComponentBase):
             rn,
             "deploy",
             connection,
-            create=_DEPLOY_COMMAND,
+            create=DEPLOY_COMMAND,
             triggers=[
                 vm_lifecycle,
                 fullchain_pem,
@@ -266,8 +332,9 @@ class PortainerVm(ComponentBase):
             rn,
             "init-admin",
             connection,
-            create=_INIT_ADMIN_COMMAND,
+            create=INIT_ADMIN_COMMAND,
             stdin=auth_payload,
+            logging=Logging.NONE,
             triggers=[
                 vm_lifecycle,
                 fullchain_pem,
@@ -280,7 +347,7 @@ class PortainerVm(ComponentBase):
         )
 
         self.admin_username = pulumi.Output.from_input(settings.admin_username)
-        self.admin_password = pulumi.Output.secret(admin_password.result)
+        self.admin_password = pulumi.Output.secret(desired_admin_password)
         self.ssh_private_key = pulumi.Output.secret(ssh_key.private_key_openssh)
         self.url = pulumi.Output.from_input(
             f"https://{settings.fqdn}:{settings.public_port}"
@@ -308,12 +375,15 @@ class PortainerVm(ComponentBase):
         parent: pulumi.Resource,
         stdin: pulumi.Input[str] | None = None,
         depends_on: list[pulumi.Resource] | None = None,
+        update: pulumi.Input[str] | None = None,
+        logging: Logging | None = None,
     ) -> Command:
         return Command(
             f"{name}-{rn}-{label}",
             connection=connection,
             create=create,
-            update=create,
+            update=update if update is not None else create,
+            logging=logging,
             stdin=stdin,
             triggers=triggers,
             opts=pulumi.ResourceOptions(

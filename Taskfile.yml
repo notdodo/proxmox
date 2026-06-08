@@ -3,6 +3,10 @@ version: "3"
 env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
+vars:
+  PYTHON_PROJECTS:
+    sh: find . -mindepth 1 -maxdepth 2 -name pyproject.toml -not -path '*/.venv/*' -exec dirname {} \; | sort | tr '\n' ' '
+
 tasks:
   default:
     desc: Show available commands
@@ -12,28 +16,27 @@ tasks:
   install:
     desc: Install Python dependencies
     cmds:
-      - uv sync
+      - for dir in {{.PYTHON_PROJECTS}}; do (cd "$dir" && uv sync); done
 
   format:
     desc: Format repository code
     cmds:
-      - uv run ruff format
-      - uv run ruff check --fix
+      - for dir in {{.PYTHON_PROJECTS}}; do (cd "$dir" && uv run ruff format && uv run ruff check --fix); done
 
   format-check:
     desc: Check the code format (without modifying)
     cmds:
-      - uv run ruff format --check
+      - for dir in {{.PYTHON_PROJECTS}}; do (cd "$dir" && uv run ruff format --check); done
 
   lint:
     desc: Run lint checks
     cmds:
-      - uv run ruff check
+      - for dir in {{.PYTHON_PROJECTS}}; do (cd "$dir" && uv run ruff check); done
 
   type-check:
     desc: Run static type checks
     cmds:
-      - uv run mypy .
+      - for dir in {{.PYTHON_PROJECTS}}; do (cd "$dir" && uv run mypy .); done
 
   check:
     desc: Run formatting check, lint, and type checks

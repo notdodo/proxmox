@@ -1,7 +1,7 @@
 [project]
 name = "cloudflare"
 version = "0.1.0"
-description = "Pulumi-based Proxmox homelab infrastructure."
+description = "Cloudflare support stack for the Proxmox homelab."
 authors = [{ name = "notdodo " }]
 requires-python = ">=3.11"
 readme = "README.md"
