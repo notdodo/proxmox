@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["mypy[faster-cache]>=2.1.0", "ruff>=0.15.14"]
+dev = ["mypy[faster-cache]>=2.1.0", "ruff>=0.15.19"]
 
 [tool.uv]
 package = false
