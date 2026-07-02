@@ -6,7 +6,7 @@ authors = [{ name = "notdodo " }]
 requires-python = ">=3.11"
 readme = "README.md"
 dependencies = [
-    "pulumi>=3.243.0,<4.0.0",
+    "pulumi>=3.247.0,<4.0.0",
     "pulumi-command>=1.2.1",
     "pulumi-proxmoxve>=8.2.1",
     "pulumi-random>=4.21.0",
