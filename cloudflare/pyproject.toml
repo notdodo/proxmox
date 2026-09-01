@@ -8,7 +8,7 @@ readme = "README.md"
 dependencies = ["pulumi>=3.254.0"]
 
 [dependency-groups]
-dev = ["mypy[faster-cache]>=2.3.0", "ruff>=0.16.0"]
+dev = ["mypy[faster-cache]>=2.3.1", "ruff>=0.16.4"]
 
 [tool.uv]
 package = false
