@@ -580,7 +580,7 @@ dev = [
 
 [[package]]
 name = "pulumi"
-version = "3.254.0"
+version = "3.259.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "debugpy" },
@@ -596,7 +596,7 @@ dependencies = [
     { name = "semver" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/5d/7e2206f72fb8bd455ea57dc1eec649110dd33393e1adffb58e94f5072f8c/pulumi-3.254.0-py3-none-any.whl", hash = "sha256:c54dbc5bea1bbb5b7f2ebc01a4858bd7225e9b7435833f69b2150d74228d92ac", size = 414606, upload-time = "2026-07-23T15:11:53.149Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/03/0480ecec165c0e69ec704df893f53d496cf309ef730604cc5bbd654538f2/pulumi-3.259.0-py3-none-any.whl", hash = "sha256:bdcf1f417828e2ef41040d4b90db87d1a50661b85bad4ab4935b05612c7f18e8", size = 417212, upload-time = "2026-08-19T20:05:10.63Z" },
 ]
 
 [[package]]
@@ -615,16 +615,16 @@ wheels = [
 
 [[package]]
 name = "pulumi-proxmoxve"
-version = "8.3.0"
+version = "8.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "parver" },
     { name = "pulumi" },
     { name = "semver" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9b/2d/d9f28f408435868ced8e1f5f73b716d3be61a6a01da37b90bb881be831da/pulumi_proxmoxve-8.3.0.tar.gz", hash = "sha256:b9f331c13833eefa32bfa24e2f1786c7a80703a4a1f6c5e7d8fe84caef65d1d4", size = 402370, upload-time = "2026-07-05T15:12:39.782Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2c/31/8a746542ef8827fb4e72b2d5692b1801ad90659c301eefcf003b07f2cdb7/pulumi_proxmoxve-8.4.1.tar.gz", hash = "sha256:68beab0aa774ad1283112674fa40e1d0406f78a5b1c56e39f055c62bc8420b8d", size = 404209, upload-time = "2026-08-15T14:57:32.456Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/59/24aad3315fa3d8fcc31a179bc2c47228c1e886d35c74f4a437a36da43da3/pulumi_proxmoxve-8.3.0-py3-none-any.whl", hash = "sha256:ee8b1484fe3f2c8a0c8af39542ea552598584158771c475300cb32f06fd07753", size = 716870, upload-time = "2026-07-05T15:12:37.837Z" },
+    { url = "https://files.pythonhosted.org/packages/96/94/feb1569d6d5635c2bc59d67e87c5e819a79f62f99aae1f841c0481ae51a1/pulumi_proxmoxve-8.4.1-py3-none-any.whl", hash = "sha256:13f971b37cb5ec121c3f0e4874ffe70c9a170adfe605ebdc23abb545190cfcf5", size = 715011, upload-time = "2026-08-15T14:57:30.723Z" },
 ]
 
 [[package]]
