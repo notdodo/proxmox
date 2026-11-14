@@ -23,6 +23,7 @@ unfixable = []
 select = ["ALL"]
 ignore = [
     "COM812",
+    "CPY001",
     "D2",
     "D4",
     "ERA001",
