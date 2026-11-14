@@ -7,6 +7,15 @@ jobs:
     permissions:
       contents: read
     uses: notdodo/github-actions/.github/workflows/python-ci.yml@python-ci-v0
+    with:
+      working-directory: proxmox
+
+  python-ci-cloudflare:
+    permissions:
+      contents: read
+    uses: notdodo/github-actions/.github/workflows/python-ci.yml@python-ci-v0
+    with:
+      working-directory: cloudflare
 
   # pulumi-preview:
   #   name: Pulumi Preview
